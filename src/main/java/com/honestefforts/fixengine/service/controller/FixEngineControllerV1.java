@@ -1,5 +1,10 @@
 package com.honestefforts.fixengine.service.controller;
 
+import static com.honestefforts.fixengine.service.service.FixEngineService.getIncorrectVersionResponse;
+import static com.honestefforts.fixengine.service.service.FixEngineService.processTags;
+
+import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
+import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.service.validation.BeginStringValidator;
 import java.util.List;
 import java.util.Objects;
@@ -36,10 +41,11 @@ public class FixEngineControllerV1 {
         .toList();
   }
 
-  @PostMapping(value = "/processFixMessages")
+  @PostMapping(value = "/convertFixMessages")
   public List<FixMessageResponseV1> convertFixMessages(@NonNull FixMessageRequestV1 request) {
     if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
     }
+    return null;
   }
 
 }

@@ -1,6 +1,5 @@
 package com.honestefforts.fixengine.service.converter;
 
-import com.honestefforts.fixengine.model.converter.NewOrderSingleConverter;
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import java.util.Map;
@@ -16,3 +15,4 @@ public class FixMessageFactory {
         throw new IllegalArgumentException("Message type is not supported!");
     }
   }
+}

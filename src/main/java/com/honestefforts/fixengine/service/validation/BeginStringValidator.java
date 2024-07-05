@@ -2,6 +2,8 @@ package com.honestefforts.fixengine.service.validation;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.ValidationError;
+import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.Map;
 import java.util.Optional;
 

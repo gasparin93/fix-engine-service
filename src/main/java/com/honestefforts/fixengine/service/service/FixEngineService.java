@@ -1,13 +1,15 @@
 package com.honestefforts.fixengine.service.service;
 
-import com.honestefforts.fixengine.model.FixMessageFactory;
-import com.honestefforts.fixengine.model.converter.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
+import com.honestefforts.fixengine.service.converter.BusinessMessageRejectConverter;
+import com.honestefforts.fixengine.service.converter.FixMessageFactory;
 import com.honestefforts.fixengine.service.validation.BeginStringValidator;
+import com.honestefforts.fixengine.service.validation.FixHeaderValidator;
+import com.honestefforts.fixengine.service.validation.TagValidator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +45,7 @@ public class FixEngineService {
         .toList();
   }
 
-  private static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
+  public static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
     return List.of(
         FixMessageResponseV1.builder()
             .response(BusinessMessageRejectConverter

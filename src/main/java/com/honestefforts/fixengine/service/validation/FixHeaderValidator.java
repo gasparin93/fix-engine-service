@@ -1,8 +1,10 @@
 package com.honestefforts.fixengine.service.validation;
 
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.List;
 import java.util.Map;
+import com.honestefforts.fixengine.model.validation.ValidationError;
 
 public class FixHeaderValidator implements Validator {
 
