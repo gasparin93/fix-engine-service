@@ -6,7 +6,9 @@ import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BeginStringValidator implements Validator {
 
   //tag, isSupported

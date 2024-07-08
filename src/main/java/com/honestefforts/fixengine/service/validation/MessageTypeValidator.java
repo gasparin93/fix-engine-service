@@ -5,7 +5,9 @@ import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MessageTypeValidator implements Validator {
 
   //tag, isSupported
@@ -114,6 +116,11 @@ public class MessageTypeValidator implements Validator {
         .orElse(ValidationError.builder().critical(true).submittedTag(rawTag)
             .error(rawTag.tag() == null ? REQUIRED_ERROR_MSG : "Message type is not valid!")
                 .build());
+  }
+
+  @Override
+  public String supports() {
+    return "35";
   }
 
 }

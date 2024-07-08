@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 
+@Component
 public class FixHeaderValidator implements Validator {
 
   //tag, isSupported
