@@ -147,7 +147,9 @@ public class FixEngineService {
             .response(BusinessMessageRejectConverter
                 .generate("Provided FIX version " + request.getVersion() + " is not supported"))
             .errors(List.of(ValidationError.builder().critical(true)
-                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion()).build())
+                    .error("Provided FIX version " + request.getVersion() + " is not supported")
+                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion())
+                    .version(request.getVersion()).dataType(TagType.CHARACTER).build())
                 .build()))
             .build());
   }
