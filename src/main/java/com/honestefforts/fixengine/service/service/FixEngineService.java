@@ -4,6 +4,7 @@ import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.converter.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.service.converter.FixMessageFactory;
@@ -21,11 +22,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 //TODO: handle resiliency, have more standardized logging for errors
+@RequiredArgsConstructor
+@Service
 public class FixEngineService {
 
-  public static List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
+  @Autowired
+  private final TagValidator tagValidator;
+
+  public List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
     if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
@@ -45,18 +54,7 @@ public class FixEngineService {
         .toList();
   }
 
-  public static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
-    return List.of(
-        FixMessageResponseV1.builder()
-            .response(BusinessMessageRejectConverter
-                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
-            .errors(List.of(ValidationError.builder().critical(true)
-                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion()).build())
-                .build()))
-            .build());
-  }
-
-  public static FixMessageResponseV1 processTags(@NonNull final String message,
+  public FixMessageResponseV1 processTags(@NonNull final String message,
       @NonNull final String delimiter, @NonNull final String version) {
     ConcurrentLinkedQueue<ValidationError> validationErrors = new ConcurrentLinkedQueue<>();
     Map<String, RawTag> map = parseMessageToMap(message.split(delimiter), version,
@@ -66,12 +64,12 @@ public class FixEngineService {
         .errors(validationErrors).build();
   }
 
-  public static FixMessage validateAndTransformTags(Map<String, RawTag> map,
+  public FixMessage validateAndTransformTags(Map<String, RawTag> map,
       ConcurrentLinkedQueue<ValidationError> validationErrors) {
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     boolean hasCriticalErrors = map.values().stream()
         .map(tag -> executor.submit(() ->
-            Optional.of(TagValidator.validateTag(tag, map)).filter(ValidationError::hasErrors)
+            Optional.of(tagValidator.validateTag(tag, map)).filter(ValidationError::hasErrors)
                 .map(validationError -> {
                   validationErrors.add(validationError);
                   map.remove(tag.tag());
@@ -112,7 +110,7 @@ public class FixEngineService {
     }
   }
 
-  public static Map<String, RawTag> parseMessageToMap(final String[] keyValPair,
+  public Map<String, RawTag> parseMessageToMap(final String[] keyValPair,
       final String version, ConcurrentLinkedQueue<ValidationError> badlyFormattedTags) {
     Map<String, RawTag> map = new ConcurrentHashMap<>();
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -123,6 +121,7 @@ public class FixEngineService {
       if (keyValue.length == 2) {
         map.put(keyValue[0],
             RawTag.builder().position(index).tag(keyValue[0]).value(keyValue[1]).version(version)
+                .dataType(TagType.STRING)
                 .build());
       } else {
         badlyFormattedTags.add(
@@ -140,6 +139,17 @@ public class FixEngineService {
     executor.shutdown();
 
     return map;
+  }
+
+  public static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
+    return List.of(
+        FixMessageResponseV1.builder()
+            .response(BusinessMessageRejectConverter
+                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
+            .errors(List.of(ValidationError.builder().critical(true)
+                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion()).build())
+                .build()))
+            .build());
   }
 
   public static void main(String[] args) {

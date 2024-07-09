@@ -5,6 +5,7 @@ import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.List;
 import java.util.Map;
 import com.honestefforts.fixengine.model.validation.ValidationError;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FixHeaderValidator implements Validator {
@@ -26,6 +27,11 @@ public class FixHeaderValidator implements Validator {
         ValidationError.empty()
         : ValidationError.builder().critical(true)
             .error("Missing required header values: "+missing).build();
+  }
+
+  @Override
+  public String supports() {
+    return "";
   }
 
 }

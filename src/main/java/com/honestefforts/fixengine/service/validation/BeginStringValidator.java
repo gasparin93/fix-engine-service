@@ -43,6 +43,11 @@ public class BeginStringValidator implements Validator {
     return ValidationError.empty();
   }
 
+  @Override
+  public String supports() {
+    return "87";
+  }
+
   public static boolean isVersionSupported(String tag) {
     return Optional.ofNullable(acceptedValues.get(tag))
         .orElse(false);
