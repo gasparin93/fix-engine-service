@@ -121,7 +121,7 @@ public class FixEngineService {
       String[] keyValue = pair.split("=");
       if (keyValue.length == 2) {
         map.put(keyValue[0],
-            RawTag.builder().position(index).tag(keyValue[0]).value(keyValue[1]).version(version)
+            RawTag.builder().position(index+1).tag(keyValue[0]).value(keyValue[1]).version(version)
                 .dataType(tagTypeMapConfig.getTypeOfTag(keyValue[0]))
                 .build());
       } else {

@@ -23,7 +23,7 @@ public class BeginStringValidator implements Validator {
 
   @Override
   public ValidationError validate(final RawTag rawTag, final Map<String, RawTag> context) {
-    if(rawTag.position() != 0) {
+    if(rawTag.position() != 1) {
       return ValidationError.builder().critical(true).submittedTag(rawTag)
           .error("BeginString (8) tag must be the first tag in the message!").build();
     }
