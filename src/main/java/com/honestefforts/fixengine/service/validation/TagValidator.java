@@ -36,8 +36,14 @@ public class TagValidator {
   public ValidationError validateTag(RawTag rawTag, Map<String, RawTag> context) {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
         .map(validator -> validator.validate(rawTag, context))
-        .orElse(supportedTags.contains(rawTag.tag()) ? ValidationError.empty() :
+        .orElse(supportedTags.contains(rawTag.tag()) ? validateByType(rawTag) :
             ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
+  }
+
+  private ValidationError validateByType(RawTag rawTag) {
+    return rawTag.dataType().isCompliant(rawTag.value()) ? ValidationError.empty() :
+        ValidationError.builder().error("Value is not compliant with expected Tag Type!")
+            .submittedTag(rawTag).build();
   }
 
 }

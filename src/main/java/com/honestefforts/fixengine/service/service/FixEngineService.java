@@ -4,8 +4,10 @@ import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.util.PredicateUtil;
 import com.honestefforts.fixengine.model.validation.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
+import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.converter.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.service.converter.FixMessageFactory;
 import com.honestefforts.fixengine.service.validation.BeginStringValidator;
@@ -33,6 +35,8 @@ public class FixEngineService {
 
   @Autowired
   private final TagValidator tagValidator;
+  @Autowired
+  private  final TagTypeMapConfig tagTypeMapConfig;
 
   public List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
     if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
@@ -69,16 +73,14 @@ public class FixEngineService {
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     boolean hasCriticalErrors = map.values().stream()
         .map(tag -> executor.submit(() ->
-            Optional.of(tagValidator.validateTag(tag, map)).filter(ValidationError::hasErrors)
+            Optional.of(tagValidator.validateTag(tag, map))
+                .filter(ValidationError::hasErrors)
                 .map(validationError -> {
                   validationErrors.add(validationError);
                   map.remove(tag.tag());
-                  if (validationError.isCritical()) {
-                    return validationError;
-                  }
-                  return null;
+                   return validationError.isCritical();
                 })
-                .orElse(null))
+                .orElse(false))
         )
         .map(future -> {
           try {
@@ -89,8 +91,7 @@ public class FixEngineService {
           }
         })
         .onClose(executor::shutdown)
-        .filter(Objects::nonNull)
-        .anyMatch(ValidationError::isCritical);
+        .anyMatch(PredicateUtil.isTrue);
 
     ValidationError headerErrors = FixHeaderValidator.validate(map);
     if(headerErrors.hasErrors()) {
@@ -121,7 +122,7 @@ public class FixEngineService {
       if (keyValue.length == 2) {
         map.put(keyValue[0],
             RawTag.builder().position(index).tag(keyValue[0]).value(keyValue[1]).version(version)
-                .dataType(TagType.STRING)
+                .dataType(tagTypeMapConfig.getTypeOfTag(keyValue[0]))
                 .build());
       } else {
         badlyFormattedTags.add(

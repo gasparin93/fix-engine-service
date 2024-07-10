@@ -23,6 +23,9 @@ public class BeginStringValidator implements Validator {
 
   @Override
   public ValidationError validate(final RawTag rawTag, final Map<String, RawTag> context) {
+    if(rawTag.position() != 0) {
+
+    }
     if(StringUtil.isNullOrEmpty(rawTag.value())) {
       return ValidationError.builder().critical(true).submittedTag(rawTag)
           .error(Validator.REQUIRED_ERROR_MSG).build();
@@ -45,7 +48,7 @@ public class BeginStringValidator implements Validator {
 
   @Override
   public String supports() {
-    return "87";
+    return "8";
   }
 
   public static boolean isVersionSupported(String tag) {

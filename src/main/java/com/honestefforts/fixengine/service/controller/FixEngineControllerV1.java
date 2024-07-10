@@ -4,6 +4,7 @@ import static com.honestefforts.fixengine.service.service.FixEngineService.getIn
 
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
+import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.service.FixEngineService;
 import com.honestefforts.fixengine.service.validation.BeginStringValidator;
 import java.util.List;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = {"/v1"})
 public class FixEngineControllerV1 {
+  @Autowired
+  TagTypeMapConfig tagTypeMapConfig;
   @Autowired
   FixEngineService fixEngineService;
 
