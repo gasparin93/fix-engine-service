@@ -12,7 +12,7 @@ import com.honestefforts.fixengine.model.universal.Currency;
 import com.honestefforts.fixengine.model.universal.MarketIdentifierCode;
 import com.honestefforts.fixengine.service.converter.component.CommissionDataConverter;
 import com.honestefforts.fixengine.service.converter.component.DiscretionInstructionsConverter;
-import com.honestefforts.fixengine.service.converter.component.FinancialDetailsConverter;
+import com.honestefforts.fixengine.service.converter.component.FinancingDetailsConverter;
 import com.honestefforts.fixengine.service.converter.component.FixHeaderConverter;
 import com.honestefforts.fixengine.service.converter.component.FixTrailerConverter;
 import com.honestefforts.fixengine.service.converter.component.InstrumentConverter;
@@ -72,7 +72,7 @@ public class NewOrderSingleConverter implements FixConverter<NewOrderSingle> {
         .tradingSessionId(tagMap.get("336").value())
         .tradingSessionSubID(tagMap.get("625").value())
         .processCode(parseChar(tagMap.get("81").value()))
-        .financingDetails(FinancialDetailsConverter.convert(tagMap))
+        .financingDetails(FinancingDetailsConverter.convert(tagMap))
         .numberOfUnderlyingLegs(Integer.parseInt(tagMap.get("711").value()))
         .underlyingInstrument(UnderlyingInstrumentConverter.convert(tagMap))
         .previousClosePrice(Double.parseDouble(tagMap.get("140").value()))

@@ -1,8 +1,8 @@
 package com.honestefforts.fixengine.service.validation;
 
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.model.validation.FixValidator;
+import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

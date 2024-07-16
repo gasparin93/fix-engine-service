@@ -7,7 +7,7 @@ import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.universal.Currency;
 import java.util.Map;
 
-public class FinancialDetailsConverter {
+public class FinancingDetailsConverter {
   public static FinancingDetails convert(Map<String, RawTag> tagMap) {
     return FinancingDetails.builder()
         .agreementDesc(tagMap.get("913").value())

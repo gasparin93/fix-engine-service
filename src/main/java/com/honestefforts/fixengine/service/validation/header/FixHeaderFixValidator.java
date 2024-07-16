@@ -1,10 +1,10 @@
-package com.honestefforts.fixengine.service.validation;
+package com.honestefforts.fixengine.service.validation.header;
 
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
+import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;
 import java.util.Map;
-import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.springframework.stereotype.Component;
 
 @Component

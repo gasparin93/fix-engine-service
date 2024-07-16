@@ -6,7 +6,7 @@ import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.service.FixEngineService;
-import com.honestefforts.fixengine.service.validation.BeginStringFixValidator;
+import com.honestefforts.fixengine.service.validation.header.BeginStringFixValidator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
