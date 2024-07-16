@@ -8,11 +8,11 @@ import com.honestefforts.fixengine.model.util.PredicateUtil;
 import com.honestefforts.fixengine.model.validation.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
-import com.honestefforts.fixengine.service.converter.BusinessMessageRejectConverter;
-import com.honestefforts.fixengine.service.converter.FixMessageFactory;
-import com.honestefforts.fixengine.service.validation.BeginStringValidator;
-import com.honestefforts.fixengine.service.validation.FixHeaderValidator;
-import com.honestefforts.fixengine.service.validation.TagValidator;
+import com.honestefforts.fixengine.service.converter.FixConverterFactory;
+import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
+import com.honestefforts.fixengine.service.validation.BeginStringFixValidator;
+import com.honestefforts.fixengine.service.validation.FixHeaderFixValidator;
+import com.honestefforts.fixengine.service.validation.FixValidatorFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,12 +34,14 @@ import org.springframework.stereotype.Service;
 public class FixEngineService {
 
   @Autowired
-  private final TagValidator tagValidator;
-  @Autowired
   private  final TagTypeMapConfig tagTypeMapConfig;
+  @Autowired
+  private final FixValidatorFactory fixValidatorFactory;
+  @Autowired
+  private final FixConverterFactory fixConverterFactory;
 
   public List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
-    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
+    if (BeginStringFixValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -72,8 +74,9 @@ public class FixEngineService {
       ConcurrentLinkedQueue<ValidationError> validationErrors) {
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     boolean hasCriticalErrors = map.values().stream()
+        .onClose(executor::shutdown)
         .map(tag -> executor.submit(() ->
-            Optional.of(tagValidator.validateTag(tag, map))
+            Optional.of(fixValidatorFactory.validateTag(tag, map))
                 .filter(ValidationError::hasErrors)
                 .map(validationError -> {
                   validationErrors.add(validationError);
@@ -87,13 +90,12 @@ public class FixEngineService {
             return future.get();
           } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            return null;
+            return false;
           }
         })
-        .onClose(executor::shutdown)
         .anyMatch(PredicateUtil.isTrue);
 
-    ValidationError headerErrors = FixHeaderValidator.validate(map);
+    ValidationError headerErrors = FixHeaderFixValidator.validate(map);
     if(headerErrors.hasErrors()) {
       validationErrors.add(headerErrors);
       hasCriticalErrors = true;
@@ -102,7 +104,7 @@ public class FixEngineService {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
     try {
-      return FixMessageFactory.create(map);
+      return fixConverterFactory.create(map);
     } catch(NullPointerException e) {
       //TODO: have proper logging and eventually an anomaly alert system for things like this
       System.err.println("WARNING: VALIDATION DID NOT CATCH THE NULL VALUE HERE:");

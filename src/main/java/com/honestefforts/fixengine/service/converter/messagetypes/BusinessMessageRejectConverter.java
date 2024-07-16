@@ -1,4 +1,4 @@
-package com.honestefforts.fixengine.service.converter;
+package com.honestefforts.fixengine.service.converter.messagetypes;
 
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.tags.RawTag;

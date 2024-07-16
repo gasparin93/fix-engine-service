@@ -2,14 +2,14 @@ package com.honestefforts.fixengine.service.validation;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BeginStringValidator implements Validator {
+public class BeginStringFixValidator implements FixValidator {
 
   //tag, isSupported
   private static final Map<String, Boolean> acceptedValues = Map.of(
@@ -29,7 +29,7 @@ public class BeginStringValidator implements Validator {
     }
     if(StringUtil.isNullOrEmpty(rawTag.value())) {
       return ValidationError.builder().critical(true).submittedTag(rawTag)
-          .error(Validator.REQUIRED_ERROR_MSG).build();
+          .error(FixValidator.REQUIRED_ERROR_MSG).build();
     }
     if(!acceptedValues.containsKey(rawTag.value())) {
       return ValidationError.builder().critical(true).submittedTag(rawTag)
@@ -42,7 +42,7 @@ public class BeginStringValidator implements Validator {
     if(!rawTag.version().equals(rawTag.value())) {
       return ValidationError.builder()
           .critical(true).submittedTag(rawTag)
-          .error("FIX version in message is does not match the indicated version!").build();
+          .error("FIX version in message does not match the indicated version!").build();
     }
     return ValidationError.empty();
   }

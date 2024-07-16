@@ -1,14 +1,14 @@
 package com.honestefforts.fixengine.service.validation;
 
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import com.honestefforts.fixengine.model.validation.Validator;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageTypeValidator implements Validator {
+public class MessageTypeFixValidator implements FixValidator {
 
   //tag, isSupported
   private static final Map<String, Boolean> acceptedValues = Map.<String, Boolean>ofEntries(

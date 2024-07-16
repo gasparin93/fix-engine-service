@@ -1,14 +1,14 @@
 package com.honestefforts.fixengine.service.validation;
 
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.Validator;
+import com.honestefforts.fixengine.model.validation.FixValidator;
 import java.util.List;
 import java.util.Map;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FixHeaderValidator implements Validator {
+public class FixHeaderFixValidator implements FixValidator {
 
   //tag, isSupported
   private static final List<String> requiredFields = List.of(

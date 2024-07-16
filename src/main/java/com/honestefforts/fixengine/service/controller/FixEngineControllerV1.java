@@ -6,7 +6,7 @@ import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.service.FixEngineService;
-import com.honestefforts.fixengine.service.validation.BeginStringValidator;
+import com.honestefforts.fixengine.service.validation.BeginStringFixValidator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +29,7 @@ public class FixEngineControllerV1 {
 
   /*@PostMapping(value = "/processFixMessages")
   public List<FixMessageResponseV1> processFixMessages(@NonNull FixMessageRequestV1 request) {
-    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
+    if (BeginStringFixValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -50,7 +50,7 @@ public class FixEngineControllerV1 {
 
   @PostMapping(value = "/processFixMessages")
   public List<FixMessageResponseV1> processFixMessages(@RequestBody @NonNull FixMessageRequestV1 request) {
-    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
+    if (BeginStringFixValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
