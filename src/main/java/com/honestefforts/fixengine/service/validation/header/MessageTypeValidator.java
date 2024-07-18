@@ -13,17 +13,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageTypeFixValidator implements FixValidator {
+public class MessageTypeValidator implements FixValidator {
 
   private final Set<String> supportedMsgTypes;
 
   @Autowired
-  private MessageTypeFixValidator(List<FixConverter<?>> fixConverters) {
+  private MessageTypeValidator(List<FixConverter<?>> fixConverters) {
     this.supportedMsgTypes = fixConverters.stream()
         .map(FixConverter::supports)
         .collect(Collectors.toSet());
   }
-  //tag, isSupported
+
+  //if private type (U*) support is added, must be added here also
   private static final Set<String> acceptedValues = Set.of(
       "0",  //Heartbeat <0>
       "1",  //Test Request <1>
@@ -129,7 +130,7 @@ public class MessageTypeFixValidator implements FixValidator {
     }
     if(rawTag.position() != 3) {
       return validationErrorBuilder
-          .error("Message Type must be the third tag in the message!").build();
+          .error("MsgType (35) tag must be the third tag in the message!").build();
     }
     if(!acceptedValues.contains(rawTag.value())) {
       if(isCustomType(rawTag)) {
