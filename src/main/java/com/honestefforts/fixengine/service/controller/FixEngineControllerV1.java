@@ -1,12 +1,14 @@
 package com.honestefforts.fixengine.service.controller;
 
-import static com.honestefforts.fixengine.service.service.FixEngineService.getIncorrectVersionResponse;
-
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
+import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.validation.TagType;
+import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
+import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.service.service.FixEngineService;
-import com.honestefforts.fixengine.service.validation.header.BeginStringFixValidator;
+import com.honestefforts.fixengine.service.validation.header.BeginStringValidator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +52,7 @@ public class FixEngineControllerV1 {
 
   @PostMapping(value = "/processFixMessages")
   public List<FixMessageResponseV1> processFixMessages(@RequestBody @NonNull FixMessageRequestV1 request) {
-    if (BeginStringFixValidator.isVersionNotSupported(request.getVersion())) {
+    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -67,6 +69,19 @@ public class FixEngineControllerV1 {
         })
         .filter(Objects::nonNull)
         .toList();
+  }
+
+  private List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
+    return List.of(
+        FixMessageResponseV1.builder()
+            .response(BusinessMessageRejectConverter
+                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
+            .errors(List.of(ValidationError.builder().critical(true)
+                .error("Provided FIX version " + request.getVersion() + " is not supported")
+                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion())
+                    .version(request.getVersion()).dataType(TagType.CHARACTER).build())
+                .build()))
+            .build());
   }
 
 }

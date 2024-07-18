@@ -39,26 +39,6 @@ public class FixEngineService {
   @Autowired
   private final FixConverterFactory fixConverterFactory;
 
-  public List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
-    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
-      return getIncorrectVersionResponse(request);
-    }
-    ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    return request.getFixMessages().stream()
-        .map(msg -> executor.submit(() ->
-            processTags(msg, request.getDelimiter(), request.getVersion())))
-        .map(future -> {
-          try {
-            return future.get();
-          } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
   public FixMessageResponseV1 processTags(@NonNull final String message,
       @NonNull final String delimiter, @NonNull final String version) {
     ConcurrentLinkedQueue<ValidationError> validationErrors = new ConcurrentLinkedQueue<>();
@@ -94,11 +74,6 @@ public class FixEngineService {
         })
         .anyMatch(PredicateUtil.isTrue);
 
-    ValidationError headerErrors = FixHeaderFixValidator.validate(map);
-    if(headerErrors.hasErrors()) {
-      validationErrors.add(headerErrors);
-      hasCriticalErrors = true;
-    }
     if (hasCriticalErrors) {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
@@ -106,6 +81,7 @@ public class FixEngineService {
       return fixConverterFactory.create(map);
     } catch(NullPointerException e) {
       //TODO: have proper logging and eventually an anomaly alert system for things like this
+      //TODO: revisit this, I think current validation rails will account for this
       System.err.println("WARNING: VALIDATION DID NOT CATCH THE NULL VALUE HERE:");
       e.printStackTrace();
       return BusinessMessageRejectConverter.generate("Invalid input " + e.getMessage());
@@ -141,19 +117,6 @@ public class FixEngineService {
     executor.shutdown();
 
     return map;
-  }
-
-  public static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
-    return List.of(
-        FixMessageResponseV1.builder()
-            .response(BusinessMessageRejectConverter
-                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
-            .errors(List.of(ValidationError.builder().critical(true)
-                    .error("Provided FIX version " + request.getVersion() + " is not supported")
-                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion())
-                    .version(request.getVersion()).dataType(TagType.CHARACTER).build())
-                .build()))
-            .build());
   }
 
   public static void main(String[] args) {
