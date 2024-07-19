@@ -10,8 +10,7 @@ import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.converter.FixConverterFactory;
 import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
-import com.honestefforts.fixengine.service.validation.header.BeginStringFixValidator;
-import com.honestefforts.fixengine.service.validation.header.FixHeaderFixValidator;
+import com.honestefforts.fixengine.service.validation.header.BeginStringValidator;
 import com.honestefforts.fixengine.service.validation.FixValidatorFactory;
 import java.util.List;
 import java.util.Map;
@@ -34,14 +33,14 @@ import org.springframework.stereotype.Service;
 public class FixEngineService {
 
   @Autowired
-  private  final TagTypeMapConfig tagTypeMapConfig;
+  private final TagTypeMapConfig tagTypeMapConfig;
   @Autowired
   private final FixValidatorFactory fixValidatorFactory;
   @Autowired
   private final FixConverterFactory fixConverterFactory;
 
   public List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
-    if (BeginStringFixValidator.isVersionNotSupported(request.getVersion())) {
+    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
       return getIncorrectVersionResponse(request);
     }
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
