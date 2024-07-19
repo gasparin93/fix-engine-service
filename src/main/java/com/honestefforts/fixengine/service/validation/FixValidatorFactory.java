@@ -1,5 +1,8 @@
 package com.honestefforts.fixengine.service.validation;
 
+import static com.honestefforts.fixengine.model.validation.FixValidator.EMPTY_OR_NULL_VALUE;
+import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
+
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -31,12 +34,21 @@ public class FixValidatorFactory {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
         .map(fixValidator -> fixValidator.validate(rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
-            rawTag.errorIfNotCompliant(requiredTagsWithSimpleValidation.contains(rawTag.tag()))
+           doGenericValidation(rawTag)
             : ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
   }
 
   public static boolean isASupportedTag(RawTag rawTag) {
     return supportedTags.contains(rawTag.tag());
+  }
+
+  private ValidationError doGenericValidation(RawTag rawTag) {
+    boolean isCritical = requiredTagsWithSimpleValidation.contains(rawTag.tag());
+    return Optional.ofNullable(rawTag.value())
+            .filter(String::isBlank)
+                .map(_ -> rawTag.errorIfNotCompliant(isCritical))
+        .orElse(ValidationError.builder().critical(isCritical).submittedTag(rawTag)
+            .error(isCritical ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
   }
 
 }
