@@ -12,6 +12,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Validator for tag 35 (MsgType)
+ * <br>
+ * Will use SpringBoot injection to determine what converters are available and hence supported
+ * by the application.
+ */
 @Component
 public class MessageTypeValidator implements FixValidator {
 

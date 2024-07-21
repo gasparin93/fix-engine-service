@@ -19,7 +19,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class FixValidatorFactory {
   private final Map<String, FixValidator> validatorMap;
-  private static final Set<String> requiredTagsWithSimpleValidation = Set.of("34", "49", "52", "56");
+  private static final Map<String, Set<String>> requiredTagsWithSimpleValidation = Map.of(
+      "D", Set.of("34", "49", "52", "56")
+  );
   private static final Set<String> supportedTags = IntStream.range(1, 957) //1-956
       .filter(num -> num != 101 && num != 261 && num != 809)
       .mapToObj(String::valueOf)
@@ -34,7 +36,7 @@ public class FixValidatorFactory {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
         .map(fixValidator -> fixValidator.validate(rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
-           doGenericValidation(rawTag)
+           doGenericValidation(rawTag, context.get("35").value())
             : ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
   }
 
@@ -42,8 +44,10 @@ public class FixValidatorFactory {
     return supportedTags.contains(rawTag.tag());
   }
 
-  private ValidationError doGenericValidation(RawTag rawTag) {
-    boolean isCritical = requiredTagsWithSimpleValidation.contains(rawTag.tag());
+  private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
+    boolean isCritical = Optional.ofNullable(requiredTagsWithSimpleValidation.get(messageType))
+        .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
+        .orElse(false);
     return Optional.ofNullable(rawTag.value())
             .filter(String::isBlank)
                 .map(_ -> rawTag.errorIfNotCompliant(isCritical))
