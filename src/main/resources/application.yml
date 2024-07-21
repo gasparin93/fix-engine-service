@@ -1,3 +1,9 @@
+
+validation:
+  clordid:
+    false-positive-probability: 0.01
+    expected-insertions: 1000000
+
 tag:
   type-map:
     1: STRING #String
