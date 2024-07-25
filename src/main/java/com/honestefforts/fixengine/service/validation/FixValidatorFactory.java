@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FixValidatorFactory {
   private final Map<String, FixValidator> validatorMap;
-  private static final Map<String, Set<String>> requiredTagsWithSimpleValidation = Map.of(
+  private static final Map<String, Set<String>> requiredGenericValidationTagsByMsgType = Map.of(
       "D", Set.of("34", "49", "52", "56", "60")
   );
   private static final Set<String> supportedTags = IntStream.range(1, 957) //1-956
@@ -46,7 +46,7 @@ public class FixValidatorFactory {
   }
 
   private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
-    boolean isCritical = Optional.ofNullable(requiredTagsWithSimpleValidation.get(messageType))
+    boolean isCritical = Optional.ofNullable(requiredGenericValidationTagsByMsgType.get(messageType))
         .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
         .orElse(false);
     return Optional.ofNullable(rawTag.value())

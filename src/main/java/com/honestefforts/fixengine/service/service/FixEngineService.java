@@ -1,5 +1,7 @@
 package com.honestefforts.fixengine.service.service;
 
+import static com.honestefforts.fixengine.service.validation.RequiredComponentValidation.validateRequiredComponentsForMessageType;
+
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
@@ -74,6 +76,12 @@ public class FixEngineService {
         })
         .anyMatch(PredicateUtil.isTrue);
 
+    List<ValidationError> requiredComponentErrors = validateRequiredComponentsForMessageType(context);
+    validationErrors.addAll(requiredComponentErrors);
+
+    if(!requiredComponentErrors.isEmpty()) {
+      hasCriticalErrors = true;
+    }
     if (hasCriticalErrors) {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
