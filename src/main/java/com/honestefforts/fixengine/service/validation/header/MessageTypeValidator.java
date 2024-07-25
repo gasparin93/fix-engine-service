@@ -2,11 +2,11 @@ package com.honestefforts.fixengine.service.validation.header;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.honestefforts.fixengine.model.converter.FixConverter;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +128,7 @@ public class MessageTypeValidator implements FixValidator {
   );
 
   @Override
-  public ValidationError validate(RawTag rawTag, Map<String, RawTag> context) {
+  public ValidationError validate(RawTag rawTag, FixMessageContext context) {
     ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
         .critical(true).submittedTag(rawTag);
     if(StringUtil.isNullOrEmpty(rawTag.value())) {

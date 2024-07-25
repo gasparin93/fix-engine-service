@@ -3,18 +3,16 @@ package com.honestefforts.fixengine.service.service;
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.util.PredicateUtil;
-import com.honestefforts.fixengine.model.validation.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
 import com.honestefforts.fixengine.service.converter.FixConverterFactory;
 import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
-import com.honestefforts.fixengine.service.validation.header.BeginStringValidator;
 import com.honestefforts.fixengine.service.validation.FixValidatorFactory;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -42,24 +40,26 @@ public class FixEngineService {
   public FixMessageResponseV1 processTags(@NonNull final String message,
       @NonNull final String delimiter, @NonNull final String version) {
     ConcurrentLinkedQueue<ValidationError> validationErrors = new ConcurrentLinkedQueue<>();
-    Map<String, RawTag> map = parseMessageToMap(message.split(delimiter), version,
+    FixMessageContext context = parseMessageToContext(message.split(delimiter), version,
         validationErrors);
 
-    return FixMessageResponseV1.builder().response(validateAndTransformTags(map, validationErrors))
-        .errors(validationErrors).build();
+    return FixMessageResponseV1.builder()
+        .response(validateAndTransformTags(context, validationErrors))
+        .errors(validationErrors)
+        .build();
   }
 
-  public FixMessage validateAndTransformTags(Map<String, RawTag> map,
+  public FixMessage validateAndTransformTags(FixMessageContext context,
       ConcurrentLinkedQueue<ValidationError> validationErrors) {
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    boolean hasCriticalErrors = map.values().stream()
+    boolean hasCriticalErrors = context.processedMessages().values().stream()
         .onClose(executor::shutdown)
         .map(tag -> executor.submit(() ->
-            Optional.of(fixValidatorFactory.validateTag(tag, map))
+            Optional.of(fixValidatorFactory.validateTag(tag, context))
                 .filter(ValidationError::hasErrors)
                 .map(validationError -> {
                   validationErrors.add(validationError);
-                  map.remove(tag.tag());
+                  context.processedMessages().remove(tag.tag());
                    return validationError.isCritical();
                 })
                 .orElse(false))
@@ -78,7 +78,7 @@ public class FixEngineService {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
     try {
-      return fixConverterFactory.create(map);
+      return fixConverterFactory.create(context.processedMessages());
     } catch(NullPointerException e) {
       //TODO: have proper logging and eventually an anomaly alert system for things like this
       //TODO: revisit this, I think current validation rails will account for this
@@ -88,7 +88,7 @@ public class FixEngineService {
     }
   }
 
-  public Map<String, RawTag> parseMessageToMap(final String[] keyValPair,
+  public FixMessageContext parseMessageToContext(final String[] keyValPair,
       final String version, ConcurrentLinkedQueue<ValidationError> badlyFormattedTags) {
     Map<String, RawTag> map = new ConcurrentHashMap<>();
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -116,7 +116,11 @@ public class FixEngineService {
 
     executor.shutdown();
 
-    return map;
+    return FixMessageContext.builder()
+        .processedMessages(map)
+        .messageType(Optional.ofNullable(map.get("35")).map(RawTag::value).orElse(null))
+        .messageLength(keyValPair.length)
+        .build();
   }
 
   public static void main(String[] args) {

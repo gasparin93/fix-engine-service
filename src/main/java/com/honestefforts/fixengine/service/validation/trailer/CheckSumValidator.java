@@ -1,4 +1,4 @@
-package com.honestefforts.fixengine.service.validation.header;
+package com.honestefforts.fixengine.service.validation.trailer;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
@@ -7,20 +7,20 @@ import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BodyLengthValidator implements FixValidator {
+public class CheckSumValidator implements FixValidator {
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
-    if(rawTag.position() != 2) {
+    if(rawTag.position() != context.messageLength()) {
       return ValidationError.builder().critical(true).submittedTag(rawTag)
-          .error("BodyLength (9) tag must be the second tag in the message!").build();
+          .error("CheckSum (10) tag must be the last tag in the message!").build();
     }
     return rawTag.errorIfNotCompliant(true);
   }
 
   @Override
   public String supports() {
-    return "9";
+    return "8";
   }
 
 }

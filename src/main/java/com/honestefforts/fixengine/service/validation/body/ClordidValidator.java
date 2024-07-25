@@ -1,7 +1,8 @@
-package com.honestefforts.fixengine.service.validation.header;
+package com.honestefforts.fixengine.service.validation.body;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -9,7 +10,6 @@ import com.honestefforts.fixengine.service.config.ClordidValidationConfig;
 import com.honestefforts.fixengine.service.converter.util.CommonConversionUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +31,8 @@ public class ClordidValidator implements FixValidator {
   }
 
   @Override
-  public ValidationError validate(final RawTag rawTag, final Map<String, RawTag> context) {
-    return Optional.ofNullable(context.get("60"))
+  public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
+    return Optional.ofNullable(context.processedMessages().get("60"))
         .map(transactDtTag -> CommonConversionUtil.parseUtcTimestamp(transactDtTag.value()))
         .map(LocalDateTime::toLocalDate)
         .map(transactDate -> {

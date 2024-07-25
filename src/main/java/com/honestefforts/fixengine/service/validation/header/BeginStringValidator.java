@@ -1,6 +1,7 @@
 package com.honestefforts.fixengine.service.validation.header;
 
 import ch.qos.logback.core.util.StringUtil;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -22,7 +23,7 @@ public class BeginStringValidator implements FixValidator {
   );
 
   @Override
-  public ValidationError validate(final RawTag rawTag, final Map<String, RawTag> context) {
+  public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
     ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
         .critical(true).submittedTag(rawTag);
     if(StringUtil.isNullOrEmpty(rawTag.value())) {

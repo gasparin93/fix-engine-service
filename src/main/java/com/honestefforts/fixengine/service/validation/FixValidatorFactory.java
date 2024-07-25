@@ -3,6 +3,7 @@ package com.honestefforts.fixengine.service.validation;
 import static com.honestefforts.fixengine.model.validation.FixValidator.EMPTY_OR_NULL_VALUE;
 import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
 
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class FixValidatorFactory {
   private final Map<String, FixValidator> validatorMap;
   private static final Map<String, Set<String>> requiredTagsWithSimpleValidation = Map.of(
-      "D", Set.of("34", "49", "52", "56")
+      "D", Set.of("34", "49", "52", "56", "60")
   );
   private static final Set<String> supportedTags = IntStream.range(1, 957) //1-956
       .filter(num -> num != 101 && num != 261 && num != 809)
@@ -32,11 +33,11 @@ public class FixValidatorFactory {
     validatorMap = validators.stream()
         .collect(Collectors.toMap(FixValidator::supports, Function.identity()));}
 
-  public ValidationError validateTag(RawTag rawTag, Map<String, RawTag> context) {
+  public ValidationError validateTag(RawTag rawTag, FixMessageContext context) {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
         .map(fixValidator -> fixValidator.validate(rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
-           doGenericValidation(rawTag, context.get("35").value())
+           doGenericValidation(rawTag, context.messageType())
             : ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
   }
 
