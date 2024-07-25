@@ -1,16 +1,20 @@
 package com.honestefforts.fixengine.service.service;
 
-import com.honestefforts.fixengine.model.FixMessageFactory;
-import com.honestefforts.fixengine.model.converter.BusinessMessageRejectConverter;
+import static com.honestefforts.fixengine.service.validation.RequiredComponentValidation.validateRequiredComponentsForMessageType;
+
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.FixMessage;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.util.PredicateUtil;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import com.honestefforts.fixengine.service.validation.BeginStringValidator;
+import com.honestefforts.fixengine.service.config.TagTypeMapConfig;
+import com.honestefforts.fixengine.service.converter.FixConverterFactory;
+import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
+import com.honestefforts.fixengine.service.validation.FixValidatorFactory;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -19,98 +23,80 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 //TODO: handle resiliency, have more standardized logging for errors
+@RequiredArgsConstructor
+@Service
 public class FixEngineService {
 
-  public static List<FixMessageResponseV1> process(@NonNull FixMessageRequestV1 request) {
-    if (BeginStringValidator.isVersionNotSupported(request.getVersion())) {
-      return getIncorrectVersionResponse(request);
-    }
-    ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    return request.getFixMessages().stream()
-        .map(msg -> executor.submit(() ->
-            processTags(msg, request.getDelimiter(), request.getVersion())))
-        .map(future -> {
-          try {
-            return future.get();
-          } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .toList();
-  }
+  @Autowired
+  private final TagTypeMapConfig tagTypeMapConfig;
+  @Autowired
+  private final FixValidatorFactory fixValidatorFactory;
+  @Autowired
+  private final FixConverterFactory fixConverterFactory;
 
-  private static List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
-    return List.of(
-        FixMessageResponseV1.builder()
-            .response(BusinessMessageRejectConverter
-                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
-            .errors(List.of(ValidationError.builder().critical(true)
-                .submittedTag(RawTag.builder().tag("[JSON] version").value(request.getVersion()).build())
-                .build()))
-            .build());
-  }
-
-  public static FixMessageResponseV1 processTags(@NonNull final String message,
+  public FixMessageResponseV1 processTags(@NonNull final String message,
       @NonNull final String delimiter, @NonNull final String version) {
     ConcurrentLinkedQueue<ValidationError> validationErrors = new ConcurrentLinkedQueue<>();
-    Map<String, RawTag> map = parseMessageToMap(message.split(delimiter), version,
+    FixMessageContext context = parseMessageToContext(message.split(delimiter), version,
         validationErrors);
 
-    return FixMessageResponseV1.builder().response(validateAndTransformTags(map, validationErrors))
-        .errors(validationErrors).build();
+    return FixMessageResponseV1.builder()
+        .response(validateAndTransformTags(context, validationErrors))
+        .errors(validationErrors)
+        .build();
   }
 
-  public static FixMessage validateAndTransformTags(Map<String, RawTag> map,
+  public FixMessage validateAndTransformTags(FixMessageContext context,
       ConcurrentLinkedQueue<ValidationError> validationErrors) {
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    boolean hasCriticalErrors = map.values().stream()
+    boolean hasCriticalErrors = context.processedMessages().values().stream()
+        .onClose(executor::shutdown)
         .map(tag -> executor.submit(() ->
-            Optional.of(TagValidator.validateTag(tag, map)).filter(ValidationError::hasErrors)
+            Optional.of(fixValidatorFactory.validateTag(tag, context))
+                .filter(ValidationError::hasErrors)
                 .map(validationError -> {
                   validationErrors.add(validationError);
-                  map.remove(tag.tag());
-                  if (validationError.isCritical()) {
-                    return validationError;
-                  }
-                  return null;
+                  context.processedMessages().remove(tag.tag());
+                   return validationError.isCritical();
                 })
-                .orElse(null))
+                .orElse(false))
         )
         .map(future -> {
           try {
             return future.get();
           } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            return null;
+            return false;
           }
         })
-        .onClose(executor::shutdown)
-        .filter(Objects::nonNull)
-        .anyMatch(ValidationError::isCritical);
+        .anyMatch(PredicateUtil.isTrue);
 
-    ValidationError headerErrors = FixHeaderValidator.validate(map);
-    if(headerErrors.hasErrors()) {
-      validationErrors.add(headerErrors);
+    List<ValidationError> requiredComponentErrors = validateRequiredComponentsForMessageType(context);
+    validationErrors.addAll(requiredComponentErrors);
+
+    if(!requiredComponentErrors.isEmpty()) {
       hasCriticalErrors = true;
     }
     if (hasCriticalErrors) {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
     try {
-      return FixMessageFactory.create(map);
+      return fixConverterFactory.create(context.processedMessages());
     } catch(NullPointerException e) {
       //TODO: have proper logging and eventually an anomaly alert system for things like this
+      //TODO: revisit this, I think current validation rails will account for this
       System.err.println("WARNING: VALIDATION DID NOT CATCH THE NULL VALUE HERE:");
       e.printStackTrace();
       return BusinessMessageRejectConverter.generate("Invalid input " + e.getMessage());
     }
   }
 
-  public static Map<String, RawTag> parseMessageToMap(final String[] keyValPair,
+  public FixMessageContext parseMessageToContext(final String[] keyValPair,
       final String version, ConcurrentLinkedQueue<ValidationError> badlyFormattedTags) {
     Map<String, RawTag> map = new ConcurrentHashMap<>();
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -120,7 +106,8 @@ public class FixEngineService {
       String[] keyValue = pair.split("=");
       if (keyValue.length == 2) {
         map.put(keyValue[0],
-            RawTag.builder().position(index).tag(keyValue[0]).value(keyValue[1]).version(version)
+            RawTag.builder().position(index+1).tag(keyValue[0]).value(keyValue[1]).version(version)
+                .dataType(tagTypeMapConfig.getTypeOfTag(keyValue[0]))
                 .build());
       } else {
         badlyFormattedTags.add(
@@ -137,7 +124,11 @@ public class FixEngineService {
 
     executor.shutdown();
 
-    return map;
+    return FixMessageContext.builder()
+        .processedMessages(map)
+        .messageType(Optional.ofNullable(map.get("35")).map(RawTag::value).orElse(null))
+        .messageLength(keyValPair.length)
+        .build();
   }
 
   public static void main(String[] args) {
