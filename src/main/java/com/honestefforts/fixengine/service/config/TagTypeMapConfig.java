@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 @RequiredArgsConstructor
-@ConfigurationProperties(prefix = "tag.types")
+@ConfigurationProperties(prefix = "tag")
 public class TagTypeMapConfig {
   private final Map<String, TagType> typeMap;
 

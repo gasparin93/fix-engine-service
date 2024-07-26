@@ -1,15 +1,16 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
+
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.UnderlyingStipulations;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import java.util.Map;
 
 public class UnderlyingStipulationsConverter {
-  public static UnderlyingStipulations convert(Map<String, RawTag> tagMap) {
+  public static UnderlyingStipulations convert(FixMessageContext context) {
     return UnderlyingStipulations.builder()
-        .numberOfUnderlyingStipulations(Integer.parseInt(tagMap.get("887").value()))
-        .underlyingStipulationType(tagMap.get("888").value())
-        .underlyingStipulationValue(tagMap.get("889").value())
+        .numberOfUnderlyingStipulations(parseInt(context.getValueForTag("887")))
+        .underlyingStipulationType(context.getValueForTag("888"))
+        .underlyingStipulationValue(context.getValueForTag("889"))
         .build();
   }
 }

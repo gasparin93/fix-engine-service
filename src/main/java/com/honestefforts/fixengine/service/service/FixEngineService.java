@@ -86,7 +86,7 @@ public class FixEngineService {
       return BusinessMessageRejectConverter.generate("FIX message includes critical errors");
     }
     try {
-      return fixConverterFactory.create(context.processedMessages());
+      return fixConverterFactory.create(context);
     } catch(NullPointerException e) {
       //TODO: have proper logging and eventually an anomaly alert system for things like this
       //TODO: revisit this, I think current validation rails will account for this

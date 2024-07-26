@@ -1,18 +1,20 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseDouble;
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
+
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.PegInstructions;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import java.util.Map;
 
 public class PegInstructionsConverter {
-  public static PegInstructions convert(Map<String, RawTag> tagMap) {
+  public static PegInstructions convert(FixMessageContext context) {
     return PegInstructions.builder()
-        .pegOffsetValue(Double.parseDouble(tagMap.get("211").value()))
-        .pegMoveType(Integer.parseInt(tagMap.get("835").value()))
-        .pegOffsetType(Integer.parseInt(tagMap.get("836").value()))
-        .pegLimitType(Integer.parseInt(tagMap.get("837").value()))
-        .pegRoundDirection(Integer.parseInt(tagMap.get("838").value()))
-        .pegScope(Integer.parseInt(tagMap.get("840").value()))
+        .pegOffsetValue(parseDouble(context.getValueForTag("211")))
+        .pegMoveType(parseInt(context.getValueForTag("835")))
+        .pegOffsetType(parseInt(context.getValueForTag("836")))
+        .pegLimitType(parseInt(context.getValueForTag("837")))
+        .pegRoundDirection(parseInt(context.getValueForTag("838")))
+        .pegScope(parseInt(context.getValueForTag("840")))
         .build();
   }
 }

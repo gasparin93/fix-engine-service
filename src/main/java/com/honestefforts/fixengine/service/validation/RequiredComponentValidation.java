@@ -27,7 +27,7 @@ public class RequiredComponentValidation {
     }
     return messageTypeToRequiredComponents.get(context.messageType()).stream()
         .filter(requiredComponent -> requiredComponent.componentTags().stream()
-            .anyMatch(context::hasTag))
+            .noneMatch(context::hasTag))
         .map(requiredComponent -> ValidationError.builder().critical(true)
             .error("Message type " + context.messageType() + " requires "
                 + requiredComponent.componentName() + " component! Requires at least one of: ["
