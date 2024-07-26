@@ -1,21 +1,21 @@
 package com.honestefforts.fixengine.service.converter.component;
 
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseChar;
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
 
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.NestedParties;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import java.util.Map;
 
 public class NestedPartiesConverter {
-  public static NestedParties convert(Map<String, RawTag> tagMap) {
+  public static NestedParties convert(FixMessageContext context) {
     return NestedParties.builder()
-        .numberOfNestedPartyIds(Integer.parseInt(tagMap.get("539").value()))
-        .nestedPartyId(tagMap.get("524").value())
-        .nestedPartyIdSource(parseChar(tagMap.get("525").value()))
-        .nestedPartyRole(Integer.parseInt(tagMap.get("538").value()))
-        .numberOfNestedPartySubIds(Integer.parseInt(tagMap.get("804").value()))
-        .nestedPartySubId(tagMap.get("545").value())
-        .nestedPartySubIdType(Integer.parseInt(tagMap.get("805").value()))
+        .numberOfNestedPartyIds(parseInt(context.getValueForTag("539")))
+        .nestedPartyId(context.getValueForTag("524"))
+        .nestedPartyIdSource(parseChar(context.getValueForTag("525")))
+        .nestedPartyRole(parseInt(context.getValueForTag("538")))
+        .numberOfNestedPartySubIds(parseInt(context.getValueForTag("804")))
+        .nestedPartySubId(context.getValueForTag("545"))
+        .nestedPartySubIdType(parseInt(context.getValueForTag("805")))
         .build();
   }
 }

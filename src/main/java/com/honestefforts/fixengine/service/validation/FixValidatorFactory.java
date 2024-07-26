@@ -50,8 +50,8 @@ public class FixValidatorFactory {
         .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
         .orElse(false);
     return Optional.ofNullable(rawTag.value())
-            .filter(String::isBlank)
-                .map(_ -> rawTag.errorIfNotCompliant(isCritical))
+        .filter(val -> !val.isBlank())
+        .map(_ -> rawTag.errorIfNotCompliant(isCritical))
         .orElse(ValidationError.builder().critical(isCritical).submittedTag(rawTag)
             .error(isCritical ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
   }

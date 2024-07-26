@@ -1,21 +1,21 @@
 package com.honestefforts.fixengine.service.converter.component;
 
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseChar;
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
 
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.Parties;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import java.util.Map;
 
 public class PartiesConverter {
-  public static Parties convert(Map<String, RawTag> tagMap) {
+  public static Parties convert(FixMessageContext context) {
     return Parties.builder()
-        .numberOfPartyIds(Integer.parseInt(tagMap.get("453").value()))
-        .partyId(tagMap.get("448").value())
-        .partyIdSource(parseChar(tagMap.get("447").value()))
-        .partyRole(Integer.parseInt(tagMap.get("452").value()))
-        .numberOfPartySubIds(Integer.parseInt(tagMap.get("802").value()))
-        .partySubId(tagMap.get("523").value())
-        .partySubIdType(Integer.parseInt(tagMap.get("803").value()))
+        .numberOfPartyIds(parseInt(context.getValueForTag("453")))
+        .partyId(context.getValueForTag("448"))
+        .partyIdSource(parseChar(context.getValueForTag("447")))
+        .partyRole(parseInt(context.getValueForTag("452")))
+        .numberOfPartySubIds(parseInt(context.getValueForTag("802")))
+        .partySubId(context.getValueForTag("523"))
+        .partySubIdType(parseInt(context.getValueForTag("803")))
         .build();
   }
 }

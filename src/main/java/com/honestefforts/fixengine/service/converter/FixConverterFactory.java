@@ -2,7 +2,7 @@ package com.honestefforts.fixengine.service.converter;
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
 import com.honestefforts.fixengine.model.message.FixMessage;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.message.FixMessageContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +20,9 @@ public class FixConverterFactory {
     converters.forEach(converter -> converterMap.put(converter.supports(), converter));
   }
 
-  public FixMessage create(@NonNull final Map<String, RawTag> tagMap) {
-      return Optional.ofNullable(converterMap.get(tagMap.get("35").tag()))
-          .map(converter -> converter.convert(tagMap))
+  public FixMessage create(@NonNull final FixMessageContext context) {
+      return Optional.ofNullable(converterMap.get(context.messageType()))
+          .map(converter -> converter.convert(context))
           .orElse(null);
     }
 }

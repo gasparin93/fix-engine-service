@@ -20,7 +20,7 @@ public class CheckSumValidator implements FixValidator {
 
   @Override
   public String supports() {
-    return "8";
+    return "10";
   }
 
 }
