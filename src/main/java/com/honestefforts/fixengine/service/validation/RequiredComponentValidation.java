@@ -9,14 +9,14 @@ import java.util.Map;
 
 /**
  * This utility class is to validate that required components are not empty.
- * MessageHeader and MessageTrailer are available to all, so will not be included here.
+ * MessageHeader and MessageTrailer are required by all and have required tags, no need to include.
  */
 public class RequiredComponentValidation {
 
   private static final Map<String, List<Component>> messageTypeToRequiredComponents = Map.of(
       "D", List.of(
-          new Component("Instrument", Instrument.supportedTags()),
-          new Component("OrderQuantityData", OrderQuantityData.supportedTags())
+          new Component("Instrument", Instrument.getSupportedTags()),
+          new Component("OrderQuantityData", OrderQuantityData.getSupportedTags())
       )
   );
 
@@ -36,6 +36,6 @@ public class RequiredComponentValidation {
         .toList();
   }
 
-  private record Component(String componentName, List<String> componentTags) {}
+  private record Component(String componentName, List<Integer> componentTags) {}
 
 }

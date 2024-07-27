@@ -155,8 +155,8 @@ public class MessageTypeValidator implements FixValidator {
   }
 
   @Override
-  public String supports() {
-    return "35";
+  public Integer supports() {
+    return 35;
   }
 
 }

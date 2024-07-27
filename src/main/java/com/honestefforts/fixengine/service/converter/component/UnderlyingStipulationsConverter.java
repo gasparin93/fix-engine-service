@@ -8,9 +8,9 @@ import com.honestefforts.fixengine.model.message.components.UnderlyingStipulatio
 public class UnderlyingStipulationsConverter {
   public static UnderlyingStipulations convert(FixMessageContext context) {
     return UnderlyingStipulations.builder()
-        .numberOfUnderlyingStipulations(parseInt(context.getValueForTag("887")))
-        .underlyingStipulationType(context.getValueForTag("888"))
-        .underlyingStipulationValue(context.getValueForTag("889"))
+        .numberOfUnderlyingStipulations(parseInt(context.getValueForTag(887)))
+        .underlyingStipulationType(context.getValueForTag(888))
+        .underlyingStipulationValue(context.getValueForTag(889))
         .build();
   }
 }

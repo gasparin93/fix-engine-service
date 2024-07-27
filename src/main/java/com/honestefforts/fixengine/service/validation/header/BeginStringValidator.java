@@ -47,8 +47,8 @@ public class BeginStringValidator implements FixValidator {
   }
 
   @Override
-  public String supports() {
-    return "8";
+  public Integer supports() {
+    return 8;
   }
 
   public static boolean isVersionSupported(String tag) {

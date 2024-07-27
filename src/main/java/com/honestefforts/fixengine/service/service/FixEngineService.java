@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.service;
 
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
 import static com.honestefforts.fixengine.service.validation.RequiredComponentValidation.validateRequiredComponentsForMessageType;
 
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
@@ -98,15 +99,16 @@ public class FixEngineService {
 
   public FixMessageContext parseMessageToContext(final String[] keyValPair,
       final String version, ConcurrentLinkedQueue<ValidationError> badlyFormattedTags) {
-    Map<String, RawTag> map = new ConcurrentHashMap<>();
+    Map<Integer, RawTag> map = new ConcurrentHashMap<>();
     ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     IntStream.range(0, keyValPair.length).mapToObj(index -> executor.submit(() -> {
       String pair = keyValPair[index];
       String[] keyValue = pair.split("=");
-      if (keyValue.length == 2) {
-        map.put(keyValue[0],
-            RawTag.builder().position(index+1).tag(keyValue[0]).value(keyValue[1]).version(version)
+      Integer tag = keyValue.length == 2 ? parseInt(keyValue[0]) : null;
+      if (tag != null) {
+        map.put(tag,
+            RawTag.builder().position(index+1).tag(tag).value(keyValue[1]).version(version)
                 .dataType(tagTypeMapConfig.getTypeOfTag(keyValue[0]))
                 .build());
       } else {
@@ -126,7 +128,7 @@ public class FixEngineService {
 
     return FixMessageContext.builder()
         .processedMessages(map)
-        .messageType(Optional.ofNullable(map.get("35")).map(RawTag::value).orElse(null))
+        .messageType(Optional.ofNullable(map.get(35)).map(RawTag::value).orElse(null))
         .messageLength(keyValPair.length)
         .build();
   }
