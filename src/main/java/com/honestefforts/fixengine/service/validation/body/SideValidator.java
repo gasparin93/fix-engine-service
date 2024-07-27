@@ -42,8 +42,8 @@ public class SideValidator implements FixValidator {
   }
   
   @Override
-  public String supports() {
-    return "54";
+  public Integer supports() {
+    return 54;
   }
 
 }

@@ -10,13 +10,13 @@ import com.honestefforts.fixengine.model.message.components.DiscretionInstructio
 public class DiscretionInstructionsConverter {
   public static DiscretionInstructions convert(FixMessageContext context) {
     return DiscretionInstructions.builder()
-        .discretionInstruction(parseChar(context.getValueForTag("388")))
-        .discretionOffsetValue(parseDouble(context.getValueForTag("389")))
-        .discretionMoveType(parseInt(context.getValueForTag("841")))
-        .discretionOffsetType(parseInt(context.getValueForTag("842")))
-        .discretionLimitType(parseInt(context.getValueForTag("843")))
-        .discretionRoundDirection(parseInt(context.getValueForTag("844")))
-        .discretionScope(parseInt(context.getValueForTag("846")))
+        .discretionInstruction(parseChar(context.getValueForTag(388)))
+        .discretionOffsetValue(parseDouble(context.getValueForTag(389)))
+        .discretionMoveType(parseInt(context.getValueForTag(841)))
+        .discretionOffsetType(parseInt(context.getValueForTag(842)))
+        .discretionLimitType(parseInt(context.getValueForTag(843)))
+        .discretionRoundDirection(parseInt(context.getValueForTag(844)))
+        .discretionScope(parseInt(context.getValueForTag(846)))
         .build();
   }
 }

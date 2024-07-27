@@ -19,8 +19,8 @@ public class BodyLengthValidator implements FixValidator {
   }
 
   @Override
-  public String supports() {
-    return "9";
+  public Integer supports() {
+    return 9;
   }
 
 }

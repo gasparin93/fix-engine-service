@@ -19,8 +19,8 @@ public class CheckSumValidator implements FixValidator {
   }
 
   @Override
-  public String supports() {
-    return "10";
+  public Integer supports() {
+    return 10;
   }
 
 }

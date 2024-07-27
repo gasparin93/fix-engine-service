@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class ClordidValidator implements FixValidator {
   private BloomFilter<String> bloomFilter;
   private final ClordidValidationConfig clordidValidationConfig;
-  private ReentrantLock lock;
+  private final ReentrantLock lock;
   private LocalDate currentDay;
 
   @Autowired
@@ -32,8 +32,8 @@ public class ClordidValidator implements FixValidator {
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
-    return Optional.ofNullable(context.processedMessages().get("60"))
-        .map(transactDtTag -> CommonConversionUtil.parseUtcTimestamp(transactDtTag.value()))
+    return Optional.ofNullable(context.getValueForTag(60))
+        .map(CommonConversionUtil::parseUtcTimestamp)
         .map(LocalDateTime::toLocalDate)
         .map(transactDate -> {
           lock.lock();
@@ -66,8 +66,8 @@ public class ClordidValidator implements FixValidator {
   }
 
   @Override
-  public String supports() {
-    return "11";
+  public Integer supports() {
+    return 11;
   }
 
 }

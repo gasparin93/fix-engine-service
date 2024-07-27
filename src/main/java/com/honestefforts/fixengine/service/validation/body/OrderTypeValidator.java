@@ -43,8 +43,8 @@ public class OrderTypeValidator implements FixValidator {
   }
   
   @Override
-  public String supports() {
-    return "40";
+  public Integer supports() {
+    return 40;
   }
 
 }

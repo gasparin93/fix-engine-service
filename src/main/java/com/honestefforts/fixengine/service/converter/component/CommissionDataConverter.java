@@ -12,10 +12,10 @@ import com.honestefforts.fixengine.model.universal.Currency;
 public class CommissionDataConverter {
   public static CommissionData convert(FixMessageContext context) {
     return CommissionData.builder()
-        .commission(parseDouble(context.getValueForTag("12")))
-        .commissionType(parseChar(context.getValueForTag("13")))
-        .commissionCurrency(parseEnum(Currency.class, context.getValueForTag("479")))
-        .fundRenewCommissionWaived(parseBoolean(context.getValueForTag("497")))
+        .commission(parseDouble(context.getValueForTag(12)))
+        .commissionType(parseChar(context.getValueForTag(13)))
+        .commissionCurrency(parseEnum(Currency.class, context.getValueForTag(479)))
+        .fundRenewCommissionWaived(parseBoolean(context.getValueForTag(497)))
         .build();
   }
 }
