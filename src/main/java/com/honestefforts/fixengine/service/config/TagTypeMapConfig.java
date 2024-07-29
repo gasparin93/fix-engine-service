@@ -1,6 +1,6 @@
 package com.honestefforts.fixengine.service.config;
 
-import com.honestefforts.fixengine.model.validation.TagType;
+import com.honestefforts.fixengine.model.message.tags.TagType;
 import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
