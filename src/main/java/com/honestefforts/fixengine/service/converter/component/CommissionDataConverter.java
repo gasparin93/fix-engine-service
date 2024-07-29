@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class CommissionDataConverter {
+
   private static final Map<Integer, BiConsumer<CommissionDataBuilder, String>> tagMapping = Map.of(
       12, (builder, val) -> builder.commission(parseDouble(val)),
       13, (builder, val) -> builder.commissionType(parseChar(val)),

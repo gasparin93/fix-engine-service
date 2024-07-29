@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class DiscretionInstructionsConverter {
+
   private static final Map<Integer, BiConsumer<DiscretionInstructionsBuilder, String>> tagMapping = Map.of(
       388, (builder, val) -> builder.discretionInstruction(parseChar(val)),
       389, (builder, val) -> builder.discretionOffsetValue(parseDouble(val)),
