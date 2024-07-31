@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class DiscretionInstructionsConverterTest {
 
@@ -73,20 +72,6 @@ public class DiscretionInstructionsConverterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {388, 389})
-  void convert_nullValues_expectExceptions(int tag) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(tag, null)
-        ))
-        .build();
-
-    assertThatThrownBy(() -> DiscretionInstructionsConverter.convert(context))
-        .isInstanceOf(NullPointerException.class)
-        .hasMessageContaining(" is null");
-  }
-
-  @ParameterizedTest
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
@@ -101,7 +86,9 @@ public class DiscretionInstructionsConverterTest {
   private static Stream<Arguments> invalidValues() {
     return Stream.of(
         Arguments.of(getRawTagEntry(388, ""), StringIndexOutOfBoundsException.class),
+        Arguments.of(getRawTagEntry(388, null), NullPointerException.class),
         Arguments.of(getRawTagEntry(389, "double"), NumberFormatException.class),
+        Arguments.of(getRawTagEntry(389, null), NullPointerException.class),
         Arguments.of(getRawTagEntry(841, "a number"), NumberFormatException.class),
         Arguments.of(getRawTagEntry(841, null), NumberFormatException.class),
         Arguments.of(getRawTagEntry(842, "a number"), NumberFormatException.class),

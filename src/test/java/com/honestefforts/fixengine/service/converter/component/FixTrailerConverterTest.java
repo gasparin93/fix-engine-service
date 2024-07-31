@@ -5,9 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.components.CommissionData;
+import com.honestefforts.fixengine.model.message.components.FixTrailer;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.universal.Currency;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -15,55 +14,54 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class CommissionDataConverterTest {
+public class FixTrailerConverterTest {
 
   @Test
   void convert_happyPath() {
     FixMessageContext context = FixMessageContext.builder()
         .processedMessages(Map.ofEntries(
-            getRawTagEntry(12, "3.2"),
-            getRawTagEntry(13, "a"),
-            getRawTagEntry(479, "USD"),
-            getRawTagEntry(497, "Y")
+            getRawTagEntry(10, "string1"),
+            getRawTagEntry(93, "1"),
+            getRawTagEntry(89, "string2")
         ))
         .build();
 
-    assertThat(CommissionDataConverter.convert(context))
+    assertThat(FixTrailerConverter.convert(context))
         .usingRecursiveComparison()
         .withStrictTypeChecking()
-        .isEqualTo(CommissionData.builder()
-            .commission(3.2)
-            .commissionType('a')
-            .commissionCurrency(Currency.USD)
-            .fundRenewCommissionWaived(true)
+        .isEqualTo(FixTrailer.builder()
+            .checkSum("string1")
+            .signatureLength(1)
+            .signature("string2")
             .build());
   }
 
   @Test
-  void convert_emptyMap_expectEmptyObject() {
+  void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
     FixMessageContext context = FixMessageContext.builder()
         .processedMessages(Map.of())
         .build();
 
-    assertThat(CommissionDataConverter.convert(context))
-        .usingRecursiveComparison()
-        .withStrictTypeChecking()
-        .isEqualTo(CommissionData.builder().build());
+    assertThatThrownBy(() -> FixHeaderConverter.convert(context))
+        .isInstanceOf(NullPointerException.class);
   }
 
   @Test
-  void convert_unsupportedTags_expectEmptyObject() {
+  void convert_unsupportedTags_expectOnlyRequiredTags() {
     FixMessageContext context = FixMessageContext.builder()
         .processedMessages(Map.ofEntries(
+            getRawTagEntry(10, "string1"),
             getRawTagEntry(35, "8"),
             getRawTagEntry(8, null)
         ))
         .build();
 
-    assertThat(CommissionDataConverter.convert(context))
+    assertThat(FixTrailerConverter.convert(context))
         .usingRecursiveComparison()
         .withStrictTypeChecking()
-        .isEqualTo(CommissionData.builder().build());
+        .isEqualTo(FixTrailer.builder()
+            .checkSum("string1")
+            .build());
   }
 
   @ParameterizedTest
@@ -74,19 +72,15 @@ public class CommissionDataConverterTest {
         .processedMessages(Map.ofEntries(tagEntry))
         .build();
 
-    assertThatThrownBy(() -> CommissionDataConverter.convert(context))
+    assertThatThrownBy(() -> FixTrailerConverter.convert(context))
         .isInstanceOf(expectedException);
   }
 
   private static Stream<Arguments> invalidValues() {
     return Stream.of(
-        Arguments.of(getRawTagEntry(12, "double"), NumberFormatException.class),
-        Arguments.of(getRawTagEntry(12, null), NullPointerException.class),
-        Arguments.of(getRawTagEntry(13, ""), StringIndexOutOfBoundsException.class),
-        Arguments.of(getRawTagEntry(13, null), NullPointerException.class),
-        Arguments.of(getRawTagEntry(479, "ABC"), IllegalArgumentException.class),
-        Arguments.of(getRawTagEntry(479, null), NullPointerException.class)
+        Arguments.of(getRawTagEntry(10, null), NullPointerException.class),
+        Arguments.of(getRawTagEntry(93, "string"), NumberFormatException.class),
+        Arguments.of(getRawTagEntry(93, null), NumberFormatException.class)
     );
   }
-
 }
