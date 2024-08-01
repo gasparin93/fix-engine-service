@@ -7,10 +7,13 @@ import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BeginStringValidator implements FixValidator {
+
+  private static final Set<String> applicableMessageTypes = Set.of("D");
 
   //tag, isSupported
   private static final Map<String, Boolean> acceptedValues = Map.of(
@@ -49,6 +52,11 @@ public class BeginStringValidator implements FixValidator {
   @Override
   public Integer supports() {
     return 8;
+  }
+
+  @Override
+  public boolean applicableToMessageType(String messageType) {
+    return applicableMessageTypes.contains(messageType);
   }
 
   public static boolean isVersionSupported(String tag) {

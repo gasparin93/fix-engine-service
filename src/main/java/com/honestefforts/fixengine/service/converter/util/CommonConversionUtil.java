@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.util;
 
+import io.micrometer.common.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,8 +32,8 @@ public class CommonConversionUtil {
 
   public static <T> List<T> parseSpaceDelimitedList(String input, Function<String, T> parser) {
     return Arrays.stream(input.split("\\s+"))
+        .filter(StringUtils::isNotBlank) //TODO: how much leeway should be allowed?
         .map(parser)
-        .filter(Objects::nonNull)
         .toList();
   }
 

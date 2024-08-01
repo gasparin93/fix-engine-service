@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SideValidator implements FixValidator {
 
+  private static final Set<String> applicableMessageTypes = Set.of("D");
+
   //TODO: these should be an enum
   private static final Set<String> acceptedValues = Set.of(
       "1", //Buy
@@ -44,6 +46,11 @@ public class SideValidator implements FixValidator {
   @Override
   public Integer supports() {
     return 54;
+  }
+
+  @Override
+  public boolean applicableToMessageType(String messageType) {
+    return applicableMessageTypes.contains(messageType);
   }
 
 }

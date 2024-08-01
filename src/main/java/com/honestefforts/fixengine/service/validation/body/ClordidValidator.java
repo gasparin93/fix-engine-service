@@ -11,12 +11,14 @@ import com.honestefforts.fixengine.service.converter.util.CommonConversionUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ClordidValidator implements FixValidator {
+  private static final Set<String> applicableMessageTypes = Set.of("D");
   private BloomFilter<String> bloomFilter;
   private final ClordidValidationConfig clordidValidationConfig;
   private final ReentrantLock lock;
@@ -68,6 +70,11 @@ public class ClordidValidator implements FixValidator {
   @Override
   public Integer supports() {
     return 11;
+  }
+
+  @Override
+  public boolean applicableToMessageType(String messageType) {
+    return applicableMessageTypes.contains(messageType);
   }
 
 }

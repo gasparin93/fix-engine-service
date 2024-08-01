@@ -36,6 +36,7 @@ public class FixValidatorFactory {
 
   public ValidationError validateTag(RawTag rawTag, FixMessageContext context) {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
+        .filter(fixValidator -> fixValidator.applicableToMessageType(context.messageType()))
         .map(fixValidator -> fixValidator.validate(rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
            doGenericValidation(rawTag, context.messageType())

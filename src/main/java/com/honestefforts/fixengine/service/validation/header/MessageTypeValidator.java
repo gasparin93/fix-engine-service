@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageTypeValidator implements FixValidator {
 
+  private static final Set<String> applicableMessageTypes = Set.of("D");
   private final Set<String> supportedMsgTypes;
 
   @Autowired
@@ -157,6 +158,11 @@ public class MessageTypeValidator implements FixValidator {
   @Override
   public Integer supports() {
     return 35;
+  }
+
+  @Override
+  public boolean applicableToMessageType(String messageType) {
+    return applicableMessageTypes.contains(messageType);
   }
 
 }
