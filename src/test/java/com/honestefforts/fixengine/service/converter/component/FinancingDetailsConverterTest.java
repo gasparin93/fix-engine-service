@@ -1,7 +1,7 @@
 package com.honestefforts.fixengine.service.converter.component;
 
-import static com.honestefforts.fixengine.service.converter.TestUtility.getRawTagEntry;
-import static com.honestefforts.fixengine.service.converter.TestUtility.parseDateToString;
+import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
+import static com.honestefforts.fixengine.service.TestUtility.parseDateToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

@@ -1,4 +1,4 @@
-package com.honestefforts.fixengine.service.converter;
+package com.honestefforts.fixengine.service;
 
 import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
 
