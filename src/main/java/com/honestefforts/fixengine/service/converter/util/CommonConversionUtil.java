@@ -12,7 +12,7 @@ import java.util.function.Function;
 import lombok.NonNull;
 
 /** Intended for post-validation processing. All inputs are assumed to be compliant (not generate
- *   invalid input exceptions on the parser) if not null. */
+ *   invalid input exceptions on the parser) as well as non-null. */
 public class CommonConversionUtil {
 
   private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern(
@@ -24,7 +24,6 @@ public class CommonConversionUtil {
   private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
   private static final DateTimeFormatter YEAR_MONTH = DateTimeFormatter.ofPattern("yyyyMM");
   private static final String YES = "Y";
-  private static final String NO = "N";
 
   public static List<String> parseSpaceDelimitedList(String input) {
     return parseSpaceDelimitedList(input, in -> in);
@@ -42,7 +41,7 @@ public class CommonConversionUtil {
   }
 
   public static boolean parseBoolean(String bool) {
-    return bool.equals("Y");
+    return bool.equals(YES);
   }
 
   public static LocalDate parseDate(String date) {

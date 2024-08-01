@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class YieldDataConverter {
+
   private static final Map<Integer, BiConsumer<YieldDataBuilder, String>> tagMapping = Map.of(
       235, YieldDataBuilder::yieldType,
       236, (builder, val) -> builder.yield(parseDouble(val)),
@@ -19,7 +20,7 @@ public class YieldDataConverter {
       697, (builder, val) -> builder.yieldRedemptionPrice(parseDouble(val)),
       698, (builder, val) -> builder.yieldRedemptionPriceType(parseInt(val)),
       701, (builder, val) -> builder.yieldCalcDate(parseDate(val))
-      );
+  );
 
   public static YieldData convert(FixMessageContext context) {
     YieldDataBuilder builder = YieldData.builder();

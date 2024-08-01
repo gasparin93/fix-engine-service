@@ -12,6 +12,7 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 import com.honestefforts.fixengine.model.converter.FixConverter;
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.NewOrderSingle.NewOrderSingleBuilder;
 import com.honestefforts.fixengine.model.universal.Currency;
 import com.honestefforts.fixengine.model.universal.MarketIdentifierCode;
 import com.honestefforts.fixengine.service.converter.component.CommissionDataConverter;
@@ -29,100 +30,113 @@ import com.honestefforts.fixengine.service.converter.component.StipulationsConve
 import com.honestefforts.fixengine.service.converter.component.UnderlyingInstrumentConverter;
 import com.honestefforts.fixengine.service.converter.component.YieldDataConverter;
 import com.honestefforts.fixengine.service.converter.util.CommonConversionUtil;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NewOrderSingleConverter implements FixConverter<NewOrderSingle> {
+
+  private static final Map<Integer, BiConsumer<NewOrderSingleBuilder, String>> tagMapping = Map.ofEntries(
+      Map.entry(1, NewOrderSingleBuilder::account),
+      Map.entry(11, NewOrderSingleBuilder::clordid),
+      Map.entry(15, (builder, val) -> builder.currency(parseEnum(Currency.class, val))),
+      Map.entry(18, (builder, val) -> builder.executionInstructions(
+          parseSpaceDelimitedList(val, CommonConversionUtil::parseChar))), //TODO: actually implement this
+      Map.entry(21, (builder, val) -> builder.handlingInstructions(parseChar(val))),
+      Map.entry(23, NewOrderSingleBuilder::indicationOfInterestId),
+      Map.entry(40, (builder, val) -> builder.orderType(parseChar(val))),
+      Map.entry(44, (builder, val) -> builder.price(parseDouble(val))),
+      Map.entry(54, (builder, val) -> builder.side(parseChar(val))),
+      Map.entry(58, NewOrderSingleBuilder::text),
+      Map.entry(59, (builder, val) -> builder.timeInForce(parseChar(val))),
+      Map.entry(60, (builder, val) -> builder.transactTime(parseUtcTimestamp(val))),
+      Map.entry(63, (builder, val) -> builder.settlementType(parseChar(val))),
+      Map.entry(64, (builder, val) -> builder.settlementDate(parseDate(val))),
+      Map.entry(70, NewOrderSingleBuilder::allocationId),
+      Map.entry(75, (builder, val) -> builder.tradeDate(parseDate(val))),
+      Map.entry(77, (builder, val) -> builder.positionEffect(parseChar(val))),
+      Map.entry(78, (builder, val) -> builder.numberOfAllocations(parseInt(val))),
+      Map.entry(79, NewOrderSingleBuilder::allocationAccount),
+      Map.entry(80, (builder, val) -> builder.allocatedQuantity(parseDouble(val))),
+      Map.entry(81, (builder, val) -> builder.processCode(parseChar(val))),
+      Map.entry(99, (builder, val) -> builder.stopPrice(parseDouble(val))),
+      Map.entry(100, (builder, val) -> builder.executionDestination(
+          parseEnum(MarketIdentifierCode.class, val))),
+      Map.entry(110, (builder, val) -> builder.minimumQuantity(parseDouble(val))),
+      Map.entry(111, (builder, val) -> builder.maxFloor(parseDouble(val))),
+      Map.entry(114, (builder, val) -> builder.locateRequired(parseBoolean(val))),
+      Map.entry(117, NewOrderSingleBuilder::quoteId),
+      Map.entry(120, (builder, val) -> builder.settlementCurrency(parseEnum(Currency.class, val))),
+      Map.entry(121, (builder, val) -> builder.forexRequest(parseBoolean(val))),
+      Map.entry(126, (builder, val) -> builder.expireTime(parseUtcTimestamp(val))),
+      Map.entry(140, (builder, val) -> builder.previousClosePrice(parseDouble(val))),
+      Map.entry(168, (builder, val) -> builder.effectiveTime(parseUtcTimestamp(val))),
+      Map.entry(192, (builder, val) -> builder.orderQuantityFuture(parseInt(val))),
+      Map.entry(193, (builder, val) -> builder.settlementDateFuture(parseDate(val))),
+      Map.entry(203, (builder, val) -> builder.coveredOrUncovered(parseInt(val))),
+      Map.entry(210, (builder, val) -> builder.maxShow(parseInt(val))),
+      Map.entry(229, (builder, val) -> builder.tradeOriginationDate(parseDate(val))),
+      Map.entry(336, NewOrderSingleBuilder::tradingSessionId),
+      Map.entry(354, (builder, val) -> builder.encodedTextLength(parseInt(val))),
+      Map.entry(355, NewOrderSingleBuilder::encodedText),
+      Map.entry(376, NewOrderSingleBuilder::complianceId),
+      Map.entry(377, (builder, val) -> builder.solicitedFlag(parseBoolean(val))),
+      Map.entry(386, (builder, val) -> builder.numberOfTradingSessions(parseInt(val))),
+      Map.entry(423, (builder, val) -> builder.priceType(parseInt(val))),
+      Map.entry(427, (builder, val) -> builder.gtBookingInst(parseInt(val))),
+      Map.entry(432, (builder, val) -> builder.expireDate(parseDate(val))),
+      Map.entry(467, NewOrderSingleBuilder::individualAllocationId),
+      Map.entry(480, (builder, val) -> builder.cancellationRights(parseChar(val))),
+      Map.entry(481, (builder, val) -> builder.moneyLaunderingStatus(parseChar(val))),
+      Map.entry(494, NewOrderSingleBuilder::designation),
+      Map.entry(513, NewOrderSingleBuilder::registrationId),
+      Map.entry(526, NewOrderSingleBuilder::secondaryClordid),
+      Map.entry(528, (builder, val) -> builder.orderCapacity(parseChar(val))),
+      Map.entry(529, (builder, val) -> builder.orderRestrictions(parseSpaceDelimitedList(val))), //TODO: actually implement this
+      Map.entry(544, (builder, val) -> builder.cashMargin(parseChar(val))),
+      Map.entry(581, (builder, val) -> builder.accountType(parseInt(val))),
+      Map.entry(582, (builder, val) -> builder.customerOrderCapacity(parseInt(val))),
+      Map.entry(583, NewOrderSingleBuilder::clordidLinkId),
+      Map.entry(589, (builder, val) -> builder.dayBookingInstruction(parseChar(val))),
+      Map.entry(590, (builder, val) -> builder.bookingUnit(parseChar(val))),
+      Map.entry(625, NewOrderSingleBuilder::tradingSessionSubID),
+      Map.entry(635, NewOrderSingleBuilder::clearingFeeIndicator),
+      Map.entry(640, (builder, val) -> builder.priceFuture(parseDouble(val))),
+      Map.entry(660, (builder, val) -> builder.accountIdSource(parseInt(val))),
+      Map.entry(661, (builder, val) -> builder.allocationAccountIdSource(parseInt(val))),
+      Map.entry(711, (builder, val) -> builder.numberOfUnderlyingLegs(parseInt(val))),
+      Map.entry(736, (builder, val) -> builder.allocationSettlementCurrency(
+          parseEnum(Currency.class, val))),
+      Map.entry(775, (builder, val) -> builder.bookingType(parseInt(val))),
+      Map.entry(847, (builder, val) -> builder.targetStrategy(parseInt(val))),
+      Map.entry(848, NewOrderSingleBuilder::targetStrategyParameters),
+      Map.entry(849, (builder, val) -> builder.participationRate(parseDouble(val))),
+      Map.entry(854, (builder, val) -> builder.quantityType(parseInt(val)))
+  );
+
   @Override
   public NewOrderSingle convert(FixMessageContext context) {
-    return NewOrderSingle.builder()
+    NewOrderSingleBuilder<?, ?> builder = NewOrderSingle.builder();
+    tagMapping.forEach((key, builderMapping) ->
+        Optional.ofNullable(context.processedMessages().get(key))
+            .ifPresent(rawTag -> builderMapping.accept(builder, rawTag.value())));
+    return builder
+        .instrument(InstrumentConverter.convert(context))
+        .commissionData(CommissionDataConverter.convert(context))
+        .discretionInstructions(DiscretionInstructionsConverter.convert(context))
+        .financingDetails(FinancingDetailsConverter.convert(context))
         .fixHeader(FixHeaderConverter.convert(context))
         .fixTrailer(FixTrailerConverter.convert(context))
-        .clordid(context.getValueForTag(11))
-        .side(parseChar(context.getValueForTag(54)))
-        .transactTime(parseUtcTimestamp(context.getValueForTag(60)))
-        .orderType(parseChar(context.getValueForTag(40)))
-        .instrument(InstrumentConverter.convert(context))
-        .orderQuantityData(OrderQuantityDataConverter.convert(context))
-        .secondaryClordid(context.getValueForTag(526))
-        .clordidLinkId(context.getValueForTag(583))
-        .parties(PartiesConverter.convert(context))
-        .tradeOriginationDate(parseDate(context.getValueForTag(229)))
-        .tradeDate(parseDate(context.getValueForTag(75)))
-        .account(context.getValueForTag(1))
-        .accountIdSource(parseInt(context.getValueForTag(660)))
-        .accountType(parseInt(context.getValueForTag(581)))
-        .dayBookingInstruction(parseChar(context.getValueForTag(589)))
-        .bookingUnit(parseChar(context.getValueForTag(590)))
-        .allocationId(context.getValueForTag(70))
-        .numberOfAllocations(parseInt(context.getValueForTag(78)))
-        .allocationAccount(context.getValueForTag(79))
-        .allocationAccountIdSource(parseInt(context.getValueForTag(661)))
-        .allocationSettlementCurrency(parseEnum(Currency.class, context.getValueForTag(736)))
-        .individualAllocationId(context.getValueForTag(467))
         .nestedParties(NestedPartiesConverter.convert(context))
-        .allocatedQuantity(parseDouble(context.getValueForTag(80)))
-        .settlementType(parseChar(context.getValueForTag(63)))
-        .settlementDate(parseDate(context.getValueForTag(64)))
-        .cashMargin(parseChar(context.getValueForTag(544)))
-        .clearingFeeIndicator(context.getValueForTag(635))
-        .handlingInstructions(parseChar(context.getValueForTag(21)))
-        .executionInstructions(parseSpaceDelimitedList(context.getValueForTag(18),
-            CommonConversionUtil::parseChar)) //TODO: actually implement this
-        .minimumQuantity(parseDouble(context.getValueForTag(110)))
-        .maxFloor(parseDouble(context.getValueForTag(111)))
-        .executionDestination(parseEnum(MarketIdentifierCode.class, context.getValueForTag(100)))
-        .numberOfTradingSessions(parseInt(context.getValueForTag(386)))
-        .tradingSessionId(context.getValueForTag(336))
-        .tradingSessionSubID(context.getValueForTag(625))
-        .processCode(parseChar(context.getValueForTag(81)))
-        .financingDetails(FinancingDetailsConverter.convert(context))
-        .numberOfUnderlyingLegs(parseInt(context.getValueForTag(711)))
-        .underlyingInstrument(UnderlyingInstrumentConverter.convert(context))
-        .previousClosePrice(parseDouble(context.getValueForTag(140)))
-        .locateRequired(parseBoolean(context.getValueForTag(114)))
-        .stipulations(StipulationsConverter.convert(context))
-        .quantityType(parseInt(context.getValueForTag(854)))
-        .priceType(parseInt(context.getValueForTag(423)))
-        .price(parseDouble(context.getValueForTag(44)))
-        .stopPrice(parseDouble(context.getValueForTag(99)))
-        .spreadOrBenchmarkCurveData(SpreadOrBenchmarkCurveDataConverter.convert(context))
-        .yieldData(YieldDataConverter.convert(context))
-        .currency(parseEnum(Currency.class, context.getValueForTag(15)))
-        .complianceId(context.getValueForTag(376))
-        .solicitedFlag(parseBoolean(context.getValueForTag(377)))
-        .indicationOfInterestId(context.getValueForTag(23))
-        .quoteId(context.getValueForTag(117))
-        .timeInForce(parseChar(context.getValueForTag(59)))
-        .effectiveTime(parseUtcTimestamp(context.getValueForTag(168)))
-        .expireDate(parseDate(context.getValueForTag(432)))
-        .expireTime(parseUtcTimestamp(context.getValueForTag(126)))
-        .gtBookingInst(parseInt(context.getValueForTag(427)))
-        .commissionData(CommissionDataConverter.convert(context))
-        .orderCapacity(parseChar(context.getValueForTag(528)))
-        .orderRestrictions(parseSpaceDelimitedList(context.getValueForTag(529))) //TODO: actually implement this
-        .customerOrderCapacity(parseInt(context.getValueForTag(582)))
-        .forexRequest(parseBoolean(context.getValueForTag(121)))
-        .settlementCurrency(parseEnum(Currency.class, context.getValueForTag(120)))
-        .bookingType(parseInt(context.getValueForTag(775)))
-        .text(context.getValueForTag(58))
-        .encodedTextLength(parseInt(context.getValueForTag(354)))
-        .encodedText(context.getValueForTag(355))
-        .settlementDateFuture(parseDate(context.getValueForTag(193)))
-        .orderQuantityFuture(parseInt(context.getValueForTag(192)))
-        .priceFuture(parseDouble(context.getValueForTag(640)))
-        .positionEffect(parseChar(context.getValueForTag(77)))
-        .coveredOrUncovered(parseInt(context.getValueForTag(203)))
-        .maxShow(parseInt(context.getValueForTag(210)))
+        .orderQuantityData(OrderQuantityDataConverter.convert(context))
+        .parties(PartiesConverter.convert(context))
         .pegInstructions(PegInstructionsConverter.convert(context))
-        .discretionInstructions(DiscretionInstructionsConverter.convert(context))
-        .targetStrategy(parseInt(context.getValueForTag(847)))
-        .targetStrategyParameters(context.getValueForTag(848))
-        .participationRate(parseDouble(context.getValueForTag(849)))
-        .cancellationRights(parseChar(context.getValueForTag(480)))
-        .moneyLaunderingStatus(parseChar(context.getValueForTag(481)))
-        .registrationId(context.getValueForTag(513))
-        .designation(context.getValueForTag(494))
+        .spreadOrBenchmarkCurveData(SpreadOrBenchmarkCurveDataConverter.convert(context))
+        .stipulations(StipulationsConverter.convert(context))
+        .underlyingInstrument(UnderlyingInstrumentConverter.convert(context))
+        .yieldData(YieldDataConverter.convert(context))
         .build();
   }
 

@@ -5,6 +5,9 @@ import static com.honestefforts.fixengine.service.converter.TestUtility.parseDat
 import static com.honestefforts.fixengine.service.converter.TestUtility.parseYearMonthToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.UnderlyingInstrument;
@@ -18,14 +21,31 @@ import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
 
 public class UnderlyingInstrumentConverterTest {
-  YearMonth thisMonth = YearMonth.now();
-  LocalDate today = LocalDate.now();
+  private static final YearMonth thisMonth = YearMonth.now();
+  private static final LocalDate today = LocalDate.now();
+
+  private static MockedStatic<UnderlyingStipulationsConverter> underlyingStipulationsConverter;
+
+  @BeforeAll
+  public static void setUp() {
+    underlyingStipulationsConverter = mockStatic(UnderlyingStipulationsConverter.class);
+    underlyingStipulationsConverter.when(() -> UnderlyingStipulationsConverter.convert(any()))
+        .thenReturn(mock(UnderlyingStipulations.class));
+  }
+
+  @AfterAll
+  public static void tearDown() {
+    underlyingStipulationsConverter.close();
+  }
 
   @Test
   void convert_happyPath() {
@@ -132,7 +152,7 @@ public class UnderlyingInstrumentConverterTest {
             .underlyingStartValue(9.0)
             .underlyingCurrentValue(10.0)
             .underlyingEndValue(11.0)
-            .underlyingStipulations(UnderlyingStipulations.builder().build())
+            .underlyingStipulations(mock(UnderlyingStipulations.class))
             .build());
   }
 
@@ -146,7 +166,7 @@ public class UnderlyingInstrumentConverterTest {
         .usingRecursiveComparison()
         .withStrictTypeChecking()
         .isEqualTo(UnderlyingInstrument.builder()
-            .underlyingStipulations(UnderlyingStipulations.builder().build())
+            .underlyingStipulations(mock(UnderlyingStipulations.class))
             .build());
   }
 
@@ -163,7 +183,7 @@ public class UnderlyingInstrumentConverterTest {
         .usingRecursiveComparison()
         .withStrictTypeChecking()
         .isEqualTo(UnderlyingInstrument.builder()
-            .underlyingStipulations(UnderlyingStipulations.builder().build())
+            .underlyingStipulations(mock(UnderlyingStipulations.class))
             .build());
   }
 

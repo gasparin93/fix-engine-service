@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class StipulationsConverter {
-;
+
   private static final Map<Integer, BiConsumer<StipulationsBuilder, String>> tagMapping = Map.of(
       232, (builder, val) -> builder.numberOfStipulations(parseInt(val)),
       233, StipulationsBuilder::stipulationType,
