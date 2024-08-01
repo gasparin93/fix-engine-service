@@ -3,7 +3,7 @@ package com.honestefforts.fixengine.service.controller;
 import com.honestefforts.fixengine.model.endpoint.request.FixMessageRequestV1;
 import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.TagType;
+import com.honestefforts.fixengine.model.message.tags.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.service.service.FixEngineService;

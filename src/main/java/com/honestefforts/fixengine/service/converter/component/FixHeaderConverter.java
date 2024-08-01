@@ -6,40 +6,51 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.FixHeader;
+import com.honestefforts.fixengine.model.message.components.FixHeader.FixHeaderBuilder;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class FixHeaderConverter {
+
+  private static final Map<Integer, BiConsumer<FixHeaderBuilder, String>> tagMapping = Map.ofEntries(
+      Map.entry(115, FixHeaderBuilder::onBehalfOfCompID),
+      Map.entry(116, FixHeaderBuilder::onBehalfOfSubId),
+      Map.entry(122, (builder, val) -> builder.originalSendingTime(parseUtcTimestamp(val))),
+      Map.entry(128, FixHeaderBuilder::deliverToCompID),
+      Map.entry(129, FixHeaderBuilder::deliverToSubId),
+      Map.entry(142, FixHeaderBuilder::senderLocationId),
+      Map.entry(143, FixHeaderBuilder::targetLocationId),
+      Map.entry(144, FixHeaderBuilder::onBehalfOfLocationId),
+      Map.entry(145, FixHeaderBuilder::deliverToLocationId),
+      Map.entry(212, (builder, val) -> builder.xmlDataLength(parseInt(val))),
+      Map.entry(213, FixHeaderBuilder::xmlData),
+      Map.entry(34, (builder, val) -> builder.msgSeqNum(parseInt(val))),
+      Map.entry(347, FixHeaderBuilder::messageEncoding),
+      Map.entry(35, FixHeaderBuilder::messageType),
+      Map.entry(369, (builder, val) -> builder.lastMsgSeqNumProcessed(parseInt(val))),
+      Map.entry(43, (builder, val) -> builder.possibleDuplicationFlag(parseBoolean(val))),
+      Map.entry(49, FixHeaderBuilder::senderCompID),
+      Map.entry(50, FixHeaderBuilder::senderSubId),
+      Map.entry(52, (builder, val) -> builder.sendingTime(parseUtcTimestamp(val))),
+      Map.entry(56, FixHeaderBuilder::targetCompID),
+      Map.entry(57, FixHeaderBuilder::targetSubId),
+      Map.entry(627, (builder, val) -> builder.numberOfHops(parseInt(val))),
+      Map.entry(628, FixHeaderBuilder::hopCompId),
+      Map.entry(629, (builder, val) -> builder.hopSendingTime(parseUtcTimestamp(val))),
+      Map.entry(630, FixHeaderBuilder::hopRefId),
+      Map.entry(8, FixHeaderBuilder::version),
+      Map.entry(9, (builder, val) -> builder.bodyLength(parseInt(val))),
+      Map.entry(90, (builder, val) -> builder.secureDataLength(parseInt(val))),
+      Map.entry(91, FixHeaderBuilder::secureData),
+      Map.entry(97, (builder, val) -> builder.possibleResend(parseBoolean(val)))
+  );
+
   public static FixHeader convert(FixMessageContext context) {
-    return FixHeader.builder()
-        .version(context.getValueForTag(8))
-        .bodyLength(parseInt(context.getValueForTag(9)))
-        .messageType(context.getValueForTag(35))
-        .msgSeqNum(parseInt(context.getValueForTag(34)))
-        .sendingTime(parseUtcTimestamp(context.getValueForTag(52)))
-        .senderCompID(context.getValueForTag(49))
-        .targetCompID(context.getValueForTag(56))
-        .onBehalfOfCompID(context.getValueForTag(115))
-        .deliverToCompID(context.getValueForTag(128))
-        .secureDataLength(parseInt(context.getValueForTag(90)))
-        .secureData(context.getValueForTag(91))
-        .senderSubId(context.getValueForTag(50))
-        .senderLocationId(context.getValueForTag(142))
-        .targetSubId(context.getValueForTag(57))
-        .targetLocationId(context.getValueForTag(143))
-        .onBehalfOfSubId(context.getValueForTag(116))
-        .onBehalfOfLocationId(context.getValueForTag(144))
-        .deliverToSubId(context.getValueForTag(129))
-        .deliverToLocationId(context.getValueForTag(145))
-        .possibleDuplicationFlag(parseBoolean(context.getValueForTag(43)))
-        .possibleResend(parseBoolean(context.getValueForTag(97)))
-        .originalSendingTime(parseUtcTimestamp(context.getValueForTag(122)))
-        .xmlDataLength(parseInt(context.getValueForTag(212)))
-        .xmlData(context.getValueForTag(213))
-        .messageEncoding(context.getValueForTag(347))
-        .lastMsgSeqNumProcessed(parseInt(context.getValueForTag(369)))
-        .numberOfHops(parseInt(context.getValueForTag(627)))
-        .hopCompId(context.getValueForTag(628))
-        .hopSendingTime(parseUtcTimestamp(context.getValueForTag(629)))
-        .hopRefId(context.getValueForTag(630))
-        .build();
+    FixHeaderBuilder builder = FixHeader.builder();
+    tagMapping.forEach((key, builderMapping) ->
+        Optional.ofNullable(context.processedMessages().get(key))
+            .ifPresent(rawTag -> builderMapping.accept(builder, rawTag.value())));
+    return builder.build();
   }
 }

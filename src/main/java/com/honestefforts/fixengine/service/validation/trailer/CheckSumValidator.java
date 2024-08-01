@@ -4,10 +4,13 @@ import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CheckSumValidator implements FixValidator {
+
+  private static final Set<String> applicableMessageTypes = Set.of("D");
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
@@ -21,6 +24,11 @@ public class CheckSumValidator implements FixValidator {
   @Override
   public Integer supports() {
     return 10;
+  }
+
+  @Override
+  public boolean applicableToMessageType(String messageType) {
+    return applicableMessageTypes.contains(messageType);
   }
 
 }

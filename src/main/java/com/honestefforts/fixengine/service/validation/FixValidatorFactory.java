@@ -31,10 +31,12 @@ public class FixValidatorFactory {
   @Autowired
   private FixValidatorFactory(List<FixValidator> validators) {
     validatorMap = validators.stream()
-        .collect(Collectors.toMap(FixValidator::supports, Function.identity()));}
+        .collect(Collectors.toMap(FixValidator::supports, Function.identity()));
+  }
 
   public ValidationError validateTag(RawTag rawTag, FixMessageContext context) {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
+        .filter(fixValidator -> fixValidator.applicableToMessageType(context.messageType()))
         .map(fixValidator -> fixValidator.validate(rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
            doGenericValidation(rawTag, context.messageType())

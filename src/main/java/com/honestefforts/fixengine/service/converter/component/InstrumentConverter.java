@@ -9,61 +9,72 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.components.Instrument;
+import com.honestefforts.fixengine.model.message.components.Instrument.InstrumentBuilder;
 import com.honestefforts.fixengine.model.universal.CountryCode;
 import com.honestefforts.fixengine.model.universal.Currency;
 import com.honestefforts.fixengine.model.universal.MarketIdentifierCode;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class InstrumentConverter {
+
+  private static final Map<Integer, BiConsumer<InstrumentBuilder, String>> tagMapping = Map.ofEntries(
+      Map.entry(106, InstrumentBuilder::issuer),
+      Map.entry(107, InstrumentBuilder::securityDescription),
+      Map.entry(167, InstrumentBuilder::securityType),
+      Map.entry(200, (builder, val) -> builder.maturityMonthYear(parseYearMonth(val))),
+      Map.entry(202, (builder, val) -> builder.strikePrice(parseDouble(val))),
+      Map.entry(206, (builder, val) -> builder.optionAttribute(parseChar(val))),
+      Map.entry(207, (builder, val) -> builder.securityExchange(parseEnum(MarketIdentifierCode.class, val))),
+      Map.entry(22, InstrumentBuilder::securityIdSource),
+      Map.entry(223, (builder, val) -> builder.couponRate(parseDouble(val))),
+      Map.entry(224, (builder, val) -> builder.couponPaymentDate(parseDate(val))),
+      Map.entry(225, (builder, val) -> builder.issueDate(parseDate(val))),
+      Map.entry(226, (builder, val) -> builder.repurchaseTerm(parseInt(val))),
+      Map.entry(227, (builder, val) -> builder.repurchaseRate(parseDouble(val))),
+      Map.entry(228, (builder, val) -> builder.factor(parseDouble(val))),
+      Map.entry(231, (builder, val) -> builder.contractMultiplier(parseDouble(val))),
+      Map.entry(239, InstrumentBuilder::repoCollateralSecurityType),
+      Map.entry(240, (builder, val) -> builder.redemptionDate(parseDate(val))),
+      Map.entry(255, InstrumentBuilder::creditRating),
+      Map.entry(348, (builder, val) -> builder.encodedIssuerLength(parseInt(val))),
+      Map.entry(349, InstrumentBuilder::encodedIssuer),
+      Map.entry(350, (builder, val) -> builder.encodedSecurityDescriptionLength(parseInt(val))),
+      Map.entry(351, InstrumentBuilder::encodedSecurityDescription),
+      Map.entry(454, (builder, val) -> builder.numberOfAlternativeSecurityIds(parseInt(val))),
+      Map.entry(455, InstrumentBuilder::alternativeSecurityId),
+      Map.entry(456, InstrumentBuilder::alternativeSecurityIdSource),
+      Map.entry(460, (builder, val) -> builder.product(parseInt(val))),
+      Map.entry(461, InstrumentBuilder::classificationOfFinancialInstrumentsCode),
+      Map.entry(470, (builder, val) -> builder.countryOfIssue(parseEnum(CountryCode.class, val))),
+      Map.entry(471, InstrumentBuilder::stateOrProvinceOfIssue),
+      Map.entry(472, InstrumentBuilder::localeOfIssue),
+      Map.entry(48, InstrumentBuilder::securityId),
+      Map.entry(541, (builder, val) -> builder.maturityDate(parseDate(val))),
+      Map.entry(543, InstrumentBuilder::instrumentRegistry),
+      Map.entry(55, InstrumentBuilder::symbol),
+      Map.entry(65, InstrumentBuilder::symbolSfx),
+      Map.entry(667, (builder, val) -> builder.contractSettlementMonth(parseYearMonth(val))),
+      Map.entry(691, InstrumentBuilder::pool),
+      Map.entry(762, InstrumentBuilder::securitySubType),
+      Map.entry(864, (builder, val) -> builder.numberOfEvents(parseInt(val))),
+      Map.entry(865, (builder, val) -> builder.eventType(parseInt(val))),
+      Map.entry(866, (builder, val) -> builder.eventDate(parseDate(val))),
+      Map.entry(867, (builder, val) -> builder.eventPx(parseDouble(val))),
+      Map.entry(868, InstrumentBuilder::eventText),
+      Map.entry(873, (builder, val) -> builder.datedDate(parseDate(val))),
+      Map.entry(874, (builder, val) -> builder.interestAccrualDate(parseDate(val))),
+      Map.entry(875, (builder, val) -> builder.commercialPaperProgram(parseInt(val))),
+      Map.entry(876, InstrumentBuilder::commercialPaperRegistrationType),
+      Map.entry(947, (builder, val) -> builder.strikeCurrency(parseEnum(Currency.class, val)))
+  );
+
   public static Instrument convert(FixMessageContext context) {
-    return Instrument.builder()
-        .symbol(context.getValueForTag(55))
-        .symbolSfx(context.getValueForTag(65))
-        .securityId(context.getValueForTag(48))
-        .securityIdSource(context.getValueForTag(22))
-        .numberOfAlternativeSecurityIds(parseInt(context.getValueForTag(454)))
-        .alternativeSecurityId(context.getValueForTag(455))
-        .alternativeSecurityIdSource(context.getValueForTag(456))
-        .product(parseInt(context.getValueForTag(460)))
-        .classificationOfFinancialInstrumentsCode(context.getValueForTag(461))
-        .securityType(context.getValueForTag(167))
-        .securitySubType(context.getValueForTag(762))
-        .maturityMonthYear(parseYearMonth(context.getValueForTag(200)))
-        .maturityDate(parseDate(context.getValueForTag(541)))
-        .couponPaymentDate(parseDate(context.getValueForTag(224)))
-        .issueDate(parseDate(context.getValueForTag(225)))
-        .repoCollateralSecurityType(context.getValueForTag(239))
-        .repurchaseTerm(parseInt(context.getValueForTag(226)))
-        .repurchaseRate(parseDouble(context.getValueForTag(227)))
-        .factor(parseDouble(context.getValueForTag(228)))
-        .creditRating(context.getValueForTag(255))
-        .instrumentRegistry(context.getValueForTag(543))
-        .countryOfIssue(parseEnum(CountryCode.class, context.getValueForTag(470)))
-        .stateOrProvinceOfIssue(context.getValueForTag(471))
-        .localeOfIssue(context.getValueForTag(472))
-        .redemptionDate(parseDate(context.getValueForTag(240)))
-        .strikePrice(parseDouble(context.getValueForTag(202)))
-        .strikeCurrency(parseEnum(Currency.class, context.getValueForTag(947)))
-        .optionAttribute(parseChar(context.getValueForTag(206)))
-        .contractMultiplier(parseDouble(context.getValueForTag(231)))
-        .couponRate(parseDouble(context.getValueForTag(223)))
-        .securityExchange(parseEnum(MarketIdentifierCode.class, context.getValueForTag(207)))
-        .issuer(context.getValueForTag(106))
-        .encodedIssuerLength(parseInt(context.getValueForTag(348)))
-        .encodedIssuer(context.getValueForTag(349))
-        .securityDescription(context.getValueForTag(107))
-        .encodedSecurityDescriptionLength(parseInt(context.getValueForTag(350)))
-        .encodedSecurityDescription(context.getValueForTag(351))
-        .pool(context.getValueForTag(691))
-        .contractSettlementMonth(parseYearMonth(context.getValueForTag(667)))
-        .commercialPaperProgram(parseInt(context.getValueForTag(875)))
-        .commercialPaperRegistrationType(context.getValueForTag(876))
-        .numberOfEvents(parseInt(context.getValueForTag(864)))
-        .eventType(parseInt(context.getValueForTag(865)))
-        .eventDate(parseDate(context.getValueForTag(866)))
-        .eventPx(parseDouble(context.getValueForTag(867)))
-        .eventText(context.getValueForTag(868))
-        .datedDate(parseDate(context.getValueForTag(873)))
-        .interestAccrualDate(parseDate(context.getValueForTag(874)))
-        .build();
+    InstrumentBuilder builder = Instrument.builder();
+    tagMapping.forEach((key, builderMapping) ->
+        Optional.ofNullable(context.processedMessages().get(key))
+            .ifPresent(rawTag -> builderMapping.accept(builder, rawTag.value())));
+    return builder.build();
   }
 }
