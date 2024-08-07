@@ -82,7 +82,7 @@ public class NewOrderSingleConverterTest {
   private static MockedStatic<CommissionDataConverter> commissionDataConverter;
 
   @BeforeAll
-  public static void setUp() {
+  static void setUp() {
     fixHeaderConverter = mockStatic(FixHeaderConverter.class);
     fixTrailerConverter = mockStatic(FixTrailerConverter.class);
     instrumentConverter = mockStatic(InstrumentConverter.class);
@@ -115,7 +115,7 @@ public class NewOrderSingleConverterTest {
   }
 
   @AfterAll
-  public static void tearDown() {
+  static void tearDown() {
     fixHeaderConverter.close();
     fixTrailerConverter.close();
     instrumentConverter.close();
