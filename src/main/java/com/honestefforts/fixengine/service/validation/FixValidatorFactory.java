@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FixValidatorFactory {
   private final Map<Integer, FixValidator> validatorMap;
-  private static final Map<String, Set<Integer>> requiredGenericValidationTagsByMsgType = Map.of(
+  private static final Map<String, Set<Integer>> requiredTagsByMsgType = Map.of(
       "D", Set.of(34, 49, 52, 56, 60)
   );
   private static final Set<Integer> supportedTags = IntStream.range(1, 957) //1-956
@@ -37,7 +37,7 @@ public class FixValidatorFactory {
   public ValidationError validateTag(RawTag rawTag, FixMessageContext context) {
     return Optional.ofNullable(validatorMap.get(rawTag.tag()))
         .filter(fixValidator -> fixValidator.applicableToMessageType(context.messageType()))
-        .map(fixValidator -> fixValidator.validate(rawTag, context))
+        .map(fixValidator -> validateUsingTagSpecificValidator(fixValidator, rawTag, context))
         .orElse(isASupportedTag(rawTag) ?
            doGenericValidation(rawTag, context.messageType())
             : ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
@@ -47,10 +47,24 @@ public class FixValidatorFactory {
     return supportedTags.contains(rawTag.tag());
   }
 
-  private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
-    boolean isCritical = Optional.ofNullable(requiredGenericValidationTagsByMsgType.get(messageType))
+  private static boolean isCritical(RawTag rawTag, String messageType) {
+    return Optional.ofNullable(requiredTagsByMsgType.get(messageType))
         .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
         .orElse(false);
+  }
+
+  private ValidationError validateUsingTagSpecificValidator(FixValidator fixValidator,
+      RawTag rawTag, FixMessageContext context) {
+    boolean isCritical = isCritical(rawTag, context.messageType());
+    return Optional.ofNullable(rawTag.value())
+        .filter(val -> !val.isBlank())
+        .map(_ -> fixValidator.validate(rawTag, context))
+        .orElse(ValidationError.builder().critical(isCritical).submittedTag(rawTag)
+            .error(isCritical ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
+  }
+
+  private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
+    boolean isCritical = isCritical(rawTag, messageType);
     return Optional.ofNullable(rawTag.value())
         .filter(val -> !val.isBlank())
         .map(_ -> rawTag.errorIfNotCompliant(isCritical))
