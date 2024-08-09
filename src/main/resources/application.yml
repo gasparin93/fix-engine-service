@@ -1,5 +1,6 @@
-spring.application.name: fix-engine-service
-
+spring:
+  application.name: fix-engine-service
+  threads.virtual.enabled: true
 
 validation:
   clordid:
