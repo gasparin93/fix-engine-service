@@ -1,56 +1,54 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-@Component
-public class SideValidatorTest implements FixValidator {
+public class SideValidatorTest {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  SideValidator validator = new SideValidator();
 
-  //TODO: these should be an enum
-  private static final Set<String> acceptedValues = Set.of(
-      "1", //Buy
-      "2", //Sell
-      "3", //Buy minus
-      "4", //Sell plus
-      "5", //Sell short
-      "6", //Sell short exempt
-      "7", //Undisclosed (valid for IOI and List Order messages only)
-      "8", //Cross (orders where counterparty is an exchange, valid for all messages except IOIs)
-      "9", //Cross short
-      "A", //Cross short exempt
-      "B", //"As Defined" (for use with multileg instruments)
-      "C", //"Opposite" (for use with multileg instruments)
-      "D", //Subscribe (e.g. CIV)
-      "E", //Redeem (e.g. CIV)
-      "F", //Lend (FINANCING - identifies direction of collateral)
-      "G" //Borrow (FINANCING - identifies direction of collateral)
-  );
+  @ParameterizedTest
+  @CsvSource({"1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G"})
+  void validate_happyPath(String orderType) {
+    ValidationError validationResult = validator.validate(
+        getRawTag(54, orderType),
+        FixMessageContext.builder()
+            .messageType("D")
+            .build());
 
-  @Override
-  public ValidationError validate(RawTag rawTag, FixMessageContext context) {
-    return Optional.ofNullable(rawTag.value())
-        .map(side -> acceptedValues.contains(side) ? ValidationError.empty() 
-        : ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error("Provided Side (tag 54) is unsupported or invalid!").build())
-        .orElse(ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error(EMPTY_OR_NULL_VALUE).build());
-  }
-  
-  @Override
-  public Integer supports() {
-    return 54;
+    assertThat(validationResult.hasErrors()).isFalse();
   }
 
-  @Override
-  public boolean applicableToMessageType(String messageType) {
-    return applicableMessageTypes.contains(messageType);
+  @Test
+  void validate_unsupportedOrderType_expectValidationError() {
+    ValidationError validationResult = validator.validate(
+        getRawTag(54, "ABCD"),
+        FixMessageContext.builder()
+            .messageType("D")
+            .build());
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(getRawTag(54, "ABCD")).critical(true)
+            .error("Provided Side (tag 54) is unsupported or invalid!").build());
+  }
+
+  @Test
+  void supports_tag54() {
+    assertThat(validator.supports()).isEqualTo(54);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"D, true",
+              "A, false"})
+  void applicableToMessageType(String messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType))
+        .isEqualTo(isSupported);
   }
 
 }

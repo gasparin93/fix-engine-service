@@ -1,57 +1,54 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-@Component
-public class OrderTypeValidatorTest implements FixValidator {
+public class OrderTypeValidatorTest {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  OrderTypeValidator validator = new OrderTypeValidator();
 
-  //TODO: these should be an enum
-  private static final Set<String> acceptedValues = Set.of(
-      "1", //Market
-      "2", //Limit
-      "3", //Stop
-      "4", //Stop limit
-      "6", //With or without
-      "7", //Limit or better (Deprecated)
-      "8", //Limit with or without
-      "9", //On basis
-      "D", //Previously quoted
-      "E", //Previously indicated
-      "G", //Forex - Swap
-      "I", //Funari (Limit Day Order with unexecuted portion handled as Market On Close. E.g. Japan)
-      "J", //Market If Touched (MIT)
-      "K", //Market with Leftover as Limit (market order then unexecuted quantity becomes limit order at last price)
-      "L", //Previous Fund Valuation Point (Historic pricing) (for CIV)
-      "M", //Next Fund Valuation Point (Forward pricing) (for CIV)
-      "P" //Pegged
-  );
+  @ParameterizedTest
+  @CsvSource({"1","2","3","4","6","7","8","9","D","E","G","I","J","K","L","M","P"})
+  void validate_happyPath(String orderType) {
+    ValidationError validationResult = validator.validate(
+        getRawTag(40, orderType),
+        FixMessageContext.builder()
+            .messageType("D")
+            .build());
 
-  @Override
-  public ValidationError validate(RawTag rawTag, FixMessageContext context) {
-    return Optional.ofNullable(rawTag.value())
-        .map(side -> acceptedValues.contains(side) ? ValidationError.empty() 
-        : ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error("Provided Order Type (tag 40) is unsupported or invalid!").build())
-        .orElse(ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error(EMPTY_OR_NULL_VALUE).build());
-  }
-  
-  @Override
-  public Integer supports() {
-    return 40;
+    assertThat(validationResult.hasErrors()).isFalse();
   }
 
-  @Override
-  public boolean applicableToMessageType(String messageType) {
-    return applicableMessageTypes.contains(messageType);
+  @Test
+  void validate_unsupportedOrderType_expectValidationError() {
+    ValidationError validationResult = validator.validate(
+        getRawTag(40, "ABCD"),
+        FixMessageContext.builder()
+            .messageType("D")
+            .build());
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(getRawTag(40, "ABCD")).critical(true)
+            .error("Provided Order Type (tag 40) is unsupported or invalid!").build());
+  }
+
+  @Test
+  void supports_tag40() {
+    assertThat(validator.supports()).isEqualTo(40);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"D, true",
+              "A, false"})
+  void applicableToMessageType(String messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType))
+        .isEqualTo(isSupported);
   }
 
 }

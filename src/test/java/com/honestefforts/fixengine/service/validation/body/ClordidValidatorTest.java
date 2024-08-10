@@ -119,9 +119,6 @@ public class ClordidValidatorTest {
   @CsvSource({"D, true",
               "A, false"})
   void applicableToMessageType(String messageType, boolean isSupported) {
-/*    when(clordidValidationConfig.getExpectedInsertions()).thenReturn(10);
-    when(clordidValidationConfig.getFalsePositiveProbability()).thenReturn(.01);
-    validator = new ClordidValidator(clordidValidationConfig);*/
     assertThat(validator.applicableToMessageType(messageType))
         .isEqualTo(isSupported);
   }
@@ -129,9 +126,9 @@ public class ClordidValidatorTest {
   private static Stream<Arguments> invalidTransactDate() {
     return Stream.of(
         null,
-        Arguments.of(getRawTagEntry(60, null), NullPointerException.class),
-        Arguments.of(getRawTagEntry(60, ""), NumberFormatException.class),
-        Arguments.of(getRawTagEntry(60, "invalid date"), NumberFormatException.class)
+        Arguments.of(getRawTagEntry(60, null)),
+        Arguments.of(getRawTagEntry(60, "")),
+        Arguments.of(getRawTagEntry(60, "invalid date"))
     );
   }
 
