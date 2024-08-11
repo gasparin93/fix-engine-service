@@ -1,9 +1,9 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,9 +18,7 @@ public class OrderTypeValidatorTest {
   void validate_happyPath(String orderType) {
     ValidationError validationResult = validator.validate(
         getRawTag(40, orderType),
-        FixMessageContext.builder()
-            .messageType("D")
-            .build());
+        getContext("D"));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }
@@ -29,9 +27,7 @@ public class OrderTypeValidatorTest {
   void validate_unsupportedOrderType_expectValidationError() {
     ValidationError validationResult = validator.validate(
         getRawTag(40, "ABCD"),
-        FixMessageContext.builder()
-            .messageType("D")
-            .build());
+        getContext("D"));
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(getRawTag(40, "ABCD")).critical(true)

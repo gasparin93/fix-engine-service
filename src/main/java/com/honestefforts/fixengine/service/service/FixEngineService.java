@@ -108,7 +108,7 @@ public class FixEngineService {
       Integer tag = keyValue.length == 2 ? parseInt(keyValue[0]) : null;
       if (tag != null) {
         map.put(tag,
-            RawTag.builder().position(index+1).tag(tag).value(keyValue[1]).version(version)
+            RawTag.builder().position(index+1).tag(tag).value(keyValue[1])
                 .dataType(tagTypeMapConfig.getTypeOfTag(keyValue[0]))
                 .build());
       } else {
@@ -130,6 +130,7 @@ public class FixEngineService {
         .processedMessages(map)
         .messageType(Optional.ofNullable(map.get(35)).map(RawTag::value).orElse(null))
         .messageLength(keyValPair.length)
+        .version(version)
         .build();
   }
 

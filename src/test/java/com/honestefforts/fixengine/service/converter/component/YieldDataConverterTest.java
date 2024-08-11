@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateToString;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,16 +24,14 @@ public class YieldDataConverterTest {
   void convert_happyPath() {
     LocalDate today = LocalDate.now();
     LocalDate tomorrow = today.plusDays(1);
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(235, "string1"),
-            getRawTagEntry(236, "1.0"),
-            getRawTagEntry(701, parseDateToString(today)),
-            getRawTagEntry(696, parseDateToString(tomorrow)),
-            getRawTagEntry(697, "2.0"),
-            getRawTagEntry(698, "1")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(235, "string1"),
+        getRawTagEntry(236, "1.0"),
+        getRawTagEntry(701, parseDateToString(today)),
+        getRawTagEntry(696, parseDateToString(tomorrow)),
+        getRawTagEntry(697, "2.0"),
+        getRawTagEntry(698, "1")
+    ));
 
     assertThat(YieldDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -49,9 +48,7 @@ public class YieldDataConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThat(YieldDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -61,12 +58,10 @@ public class YieldDataConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(YieldDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -78,9 +73,7 @@ public class YieldDataConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> YieldDataConverter.convert(context))
         .isInstanceOf(expectedException);

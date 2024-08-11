@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,14 +20,12 @@ public class CommissionDataConverterTest {
 
   @Test
   void convert_happyPath() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(12, "3.2"),
-            getRawTagEntry(13, "a"),
-            getRawTagEntry(479, "USD"),
-            getRawTagEntry(497, "Y")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(12, "3.2"),
+        getRawTagEntry(13, "a"),
+        getRawTagEntry(479, "USD"),
+        getRawTagEntry(497, "Y")
+    ));
 
     assertThat(CommissionDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -41,9 +40,7 @@ public class CommissionDataConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThat(CommissionDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -53,12 +50,10 @@ public class CommissionDataConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(CommissionDataConverter.convert(context))
         .usingRecursiveComparison()
@@ -70,9 +65,7 @@ public class CommissionDataConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> CommissionDataConverter.convert(context))
         .isInstanceOf(expectedException);

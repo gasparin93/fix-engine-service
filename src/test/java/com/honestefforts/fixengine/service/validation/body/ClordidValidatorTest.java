@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeToString;
@@ -9,7 +10,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.model.BloomFilterWrapper;
@@ -42,13 +42,9 @@ public class ClordidValidatorTest {
     when(bloomFilter.mightContain(any())).thenReturn(false);
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"),
-        FixMessageContext.builder()
-            .messageType("D")
-            .processedMessages(Map.ofEntries(
-                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now()))))
-            .build()
-    );
+        getRawTag(11, "clordid123"), getContext("D",
+            Map.ofEntries(
+                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now())))));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }
@@ -60,12 +56,9 @@ public class ClordidValidatorTest {
     LocalDate initialDate = validator.getCurrentDay();
     ValidationError validationResult = validator.validate(
         getRawTag(11, "clordid123"),
-        FixMessageContext.builder()
-            .messageType("D")
-            .processedMessages(Map.ofEntries(
-                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now().plusWeeks(1)))))
-            .build()
-    );
+        getContext("D",
+            Map.ofEntries(
+                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now().plusWeeks(1))))));
 
     assertThat(validationResult.hasErrors()).isFalse();
     assertThat(initialDate).isNotEqualTo(validator.getCurrentDay());
@@ -77,13 +70,9 @@ public class ClordidValidatorTest {
     when(bloomFilter.mightContain(any())).thenReturn(true);
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"),
-        FixMessageContext.builder()
-            .messageType("D")
-            .processedMessages(Map.ofEntries(
-                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now().plusWeeks(1)))))
-            .build()
-    );
+        getRawTag(11, "clordid123"), getContext("D",
+            Map.ofEntries(
+                getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now())))));
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().critical(true)
@@ -99,13 +88,8 @@ public class ClordidValidatorTest {
     //TODO: there should be an integrated test to ensure that this is the case
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"),
-        FixMessageContext.builder()
-            .messageType("D")
-            .processedMessages(
-                Optional.ofNullable(transactDateEntry).map(Map::ofEntries).orElse(Map.of()))
-            .build()
-    );
+        getRawTag(11, "clordid123"), getContext("D",
+            Optional.ofNullable(transactDateEntry).map(Map::ofEntries).orElse(Map.of())));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }

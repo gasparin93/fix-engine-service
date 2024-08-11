@@ -1,71 +1,91 @@
 package com.honestefforts.fixengine.service.validation.header;
 
-import ch.qos.logback.core.util.StringUtil;
+import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-@Component
-public class BeginStringValidatorTest implements FixValidator {
+public class BeginStringValidatorTest {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  BeginStringValidator validator = new BeginStringValidator();
 
-  //tag, isSupported
-  private static final Map<String, Boolean> acceptedValues = Map.of(
-      "FIX.4.0", false,
-      "FIX.4.1", false,
-      "FIX.4.2", false,
-      "FIX.4.3", false,
-      "FIX.4.4", true,
-      "FIX.5.0", false
-  );
+  @ParameterizedTest
+  @CsvSource({"FIX.4.4"})
+  void validate_happyPath(String version) {
+    ValidationError validationResult = validator.validate(
+        RawTag.builder().tag(8).dataType(STRING).value(version).position(1).build(),
+        getContext("D"));
 
-  @Override
-  public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
-    ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
-        .critical(true).submittedTag(rawTag);
-    if(StringUtil.isNullOrEmpty(rawTag.value())) {
-      return validationErrorBuilder.error(FixValidator.REQUIRED_ERROR_MSG).build();
-    }
-    if(rawTag.position() != 1) {
-      return validationErrorBuilder
-          .error("BeginString (8) tag must be the first tag in the message!").build();
-    }
-    if(!acceptedValues.containsKey(rawTag.value())) {
-      return validationErrorBuilder.error("FIX version is not valid!").build();
-    }
-    if(!acceptedValues.get(rawTag.value())) {
-      validationErrorBuilder.error("FIX version is not currently supported!").build();
-    }
-    if(!rawTag.version().equals(rawTag.value())) {
-      return validationErrorBuilder
-          .error("FIX version in message does not match the indicated version!").build();
-    }
-    return ValidationError.empty();
+    assertThat(validationResult.hasErrors()).isFalse();
   }
 
-  @Override
-  public Integer supports() {
-    return 8;
+  @Test
+  void validate_notFirstInMessage_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.4").position(2).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("BeginString (8) tag must be the first tag in the message!").build());
   }
 
-  @Override
-  public boolean applicableToMessageType(String messageType) {
-    return applicableMessageTypes.contains(messageType);
+  @Test
+  void validate_invalidVersion_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("ABCD").position(1).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));;
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("FIX version is not valid!").build());
   }
 
-  public static boolean isVersionSupported(String tag) {
-    return Optional.ofNullable(acceptedValues.get(tag))
-        .orElse(false);
+  @Test
+  void validate_unsupportedVersion_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.0").position(1).build();
+    ValidationError validationResult = validator.validate(tag, FixMessageContext.builder()
+        .messageType("D")
+        .version("FIX.4.0")
+        .processedMessages(Map.of())
+        .build());
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("FIX version is not currently supported!").build());
   }
 
-  public static boolean isVersionNotSupported(String tag) {
-    return !isVersionSupported(tag);
+  @Test
+  void validate_mismatchingVersions_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.4").position(1).build();
+    ValidationError validationResult = validator.validate(tag,
+        FixMessageContext.builder()
+            .messageType("D")
+            .version("FIX.4.2")
+            .processedMessages(Map.of())
+            .build());
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("FIX version in message does not match the indicated version!").build());
+  }
+
+  @Test
+  void supports_tag8() {
+    assertThat(validator.supports()).isEqualTo(8);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"D, true",
+              "A, false"})
+  void applicableToMessageType(String messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType))
+        .isEqualTo(isSupported);
   }
 
 }

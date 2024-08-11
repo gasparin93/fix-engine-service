@@ -40,9 +40,9 @@ public class BeginStringValidator implements FixValidator {
       return validationErrorBuilder.error("FIX version is not valid!").build();
     }
     if(!acceptedValues.get(rawTag.value())) {
-      validationErrorBuilder.error("FIX version is not currently supported!").build();
+      return validationErrorBuilder.error("FIX version is not currently supported!").build();
     }
-    if(!rawTag.version().equals(rawTag.value())) {
+    if(!context.version().equals(rawTag.value())) {
       return validationErrorBuilder
           .error("FIX version in message does not match the indicated version!").build();
     }
