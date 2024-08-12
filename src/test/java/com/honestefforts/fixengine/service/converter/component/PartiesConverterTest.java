@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,17 +19,15 @@ public class PartiesConverterTest {
   
   @Test
   void convert_happyPath() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(453, "1"),
-            getRawTagEntry(448, "string1"),
-            getRawTagEntry(447, "a"),
-            getRawTagEntry(452, "2"),
-            getRawTagEntry(802, "3"),
-            getRawTagEntry(523, "string2"),
-            getRawTagEntry(803, "4")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(453, "1"),
+        getRawTagEntry(448, "string1"),
+        getRawTagEntry(447, "a"),
+        getRawTagEntry(452, "2"),
+        getRawTagEntry(802, "3"),
+        getRawTagEntry(523, "string2"),
+        getRawTagEntry(803, "4")
+    ));
 
     assertThat(PartiesConverter.convert(context))
         .usingRecursiveComparison()
@@ -46,10 +45,7 @@ public class PartiesConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
-
+    FixMessageContext context = getContext("D");
     assertThat(PartiesConverter.convert(context))
         .usingRecursiveComparison()
         .withStrictTypeChecking()
@@ -58,12 +54,10 @@ public class PartiesConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(PartiesConverter.convert(context))
         .usingRecursiveComparison()
@@ -75,9 +69,7 @@ public class PartiesConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> PartiesConverter.convert(context))
         .isInstanceOf(expectedException);

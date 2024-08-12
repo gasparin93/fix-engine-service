@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateToString;
 import static com.honestefforts.fixengine.service.TestUtility.parseYearMonthToString;
@@ -49,57 +50,55 @@ public class UnderlyingInstrumentConverterTest {
 
   @Test
   void convert_happyPath() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(311, "string1"),
-            getRawTagEntry(312, "string2"),
-            getRawTagEntry(309, "string3"),
-            getRawTagEntry(305, "string4"),
-            getRawTagEntry(458, "string5"),
-            getRawTagEntry(457, "1"),
-            getRawTagEntry(462, "2"),
-            getRawTagEntry(459, "string6"),
-            getRawTagEntry(463, "string7"),
-            getRawTagEntry(310, "string8"),
-            getRawTagEntry(763, "string9"),
-            getRawTagEntry(313, parseYearMonthToString(thisMonth)),
-            getRawTagEntry(542, parseDateToString(today)),
-            getRawTagEntry(241, parseDateToString(today)),
-            getRawTagEntry(242, parseDateToString(today)),
-            getRawTagEntry(243, "string10"),
-            getRawTagEntry(244, "3"),
-            getRawTagEntry(245, "1.0"),
-            getRawTagEntry(246, "2.0"),
-            getRawTagEntry(256, "string11"),
-            getRawTagEntry(595, "string12"),
-            getRawTagEntry(592, CountryCode.US.name()),
-            getRawTagEntry(593, "string13"),
-            getRawTagEntry(594, "string14"),
-            getRawTagEntry(247, parseDateToString(today)),
-            getRawTagEntry(316, "3.0"),
-            getRawTagEntry(941, Currency.USD.name()),
-            getRawTagEntry(317, "a"),
-            getRawTagEntry(436, "4.0"),
-            getRawTagEntry(435, "5.0"),
-            getRawTagEntry(308, MarketIdentifierCode.ABXX.name()),
-            getRawTagEntry(306, "string15"),
-            getRawTagEntry(362, "4"),
-            getRawTagEntry(363, "string16"),
-            getRawTagEntry(307, "string17"),
-            getRawTagEntry(364, "5"),
-            getRawTagEntry(365, "string18"),
-            getRawTagEntry(877, "6"),
-            getRawTagEntry(878, "string19"),
-            getRawTagEntry(318, Currency.USD.name()),
-            getRawTagEntry(879, "7"),
-            getRawTagEntry(810, "6.0"),
-            getRawTagEntry(882, "7.0"),
-            getRawTagEntry(883, "8.0"),
-            getRawTagEntry(884, "9.0"),
-            getRawTagEntry(885, "10.0"),
-            getRawTagEntry(886, "11.0")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(311, "string1"),
+        getRawTagEntry(312, "string2"),
+        getRawTagEntry(309, "string3"),
+        getRawTagEntry(305, "string4"),
+        getRawTagEntry(458, "string5"),
+        getRawTagEntry(457, "1"),
+        getRawTagEntry(462, "2"),
+        getRawTagEntry(459, "string6"),
+        getRawTagEntry(463, "string7"),
+        getRawTagEntry(310, "string8"),
+        getRawTagEntry(763, "string9"),
+        getRawTagEntry(313, parseYearMonthToString(thisMonth)),
+        getRawTagEntry(542, parseDateToString(today)),
+        getRawTagEntry(241, parseDateToString(today)),
+        getRawTagEntry(242, parseDateToString(today)),
+        getRawTagEntry(243, "string10"),
+        getRawTagEntry(244, "3"),
+        getRawTagEntry(245, "1.0"),
+        getRawTagEntry(246, "2.0"),
+        getRawTagEntry(256, "string11"),
+        getRawTagEntry(595, "string12"),
+        getRawTagEntry(592, CountryCode.US.name()),
+        getRawTagEntry(593, "string13"),
+        getRawTagEntry(594, "string14"),
+        getRawTagEntry(247, parseDateToString(today)),
+        getRawTagEntry(316, "3.0"),
+        getRawTagEntry(941, Currency.USD.name()),
+        getRawTagEntry(317, "a"),
+        getRawTagEntry(436, "4.0"),
+        getRawTagEntry(435, "5.0"),
+        getRawTagEntry(308, MarketIdentifierCode.ABXX.name()),
+        getRawTagEntry(306, "string15"),
+        getRawTagEntry(362, "4"),
+        getRawTagEntry(363, "string16"),
+        getRawTagEntry(307, "string17"),
+        getRawTagEntry(364, "5"),
+        getRawTagEntry(365, "string18"),
+        getRawTagEntry(877, "6"),
+        getRawTagEntry(878, "string19"),
+        getRawTagEntry(318, Currency.USD.name()),
+        getRawTagEntry(879, "7"),
+        getRawTagEntry(810, "6.0"),
+        getRawTagEntry(882, "7.0"),
+        getRawTagEntry(883, "8.0"),
+        getRawTagEntry(884, "9.0"),
+        getRawTagEntry(885, "10.0"),
+        getRawTagEntry(886, "11.0")
+    ));
 
     assertThat(UnderlyingInstrumentConverter.convert(context))
         .usingRecursiveComparison()
@@ -158,9 +157,7 @@ public class UnderlyingInstrumentConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThat(UnderlyingInstrumentConverter.convert(context))
         .usingRecursiveComparison()
@@ -172,12 +169,10 @@ public class UnderlyingInstrumentConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(UnderlyingInstrumentConverter.convert(context))
         .usingRecursiveComparison()
@@ -191,9 +186,7 @@ public class UnderlyingInstrumentConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context =getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> UnderlyingInstrumentConverter.convert(context))
         .isInstanceOf(expectedException);

@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,8 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
-import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ public class FixConverterFactoryTest {
   void create_happyPath() {
     NewOrderSingle fixMessage = mock(NewOrderSingle.class);
     when(newOrderSingleConverter.convert(any())).thenReturn(fixMessage);
-    assertThat(fixConverterFactory.create(FixMessageContext.builder().messageType("D").build()))
+    assertThat(fixConverterFactory.create(getContext("D")))
         .isEqualTo(fixMessage);
   }
 
@@ -45,14 +45,8 @@ public class FixConverterFactoryTest {
   }
 
   @Test
-  void create_nullMessageType_expectNull() {
-    assertThat(fixConverterFactory.create(FixMessageContext.builder().build()))
-        .isNull();
-  }
-
-  @Test
   void create_unsupportedMessageType_expectNull() {
-    assertThat(fixConverterFactory.create(FixMessageContext.builder().messageType("9999").build()))
+    assertThat(fixConverterFactory.create(getContext("9999")))
         .isNull();
   }
 

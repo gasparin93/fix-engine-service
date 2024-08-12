@@ -36,12 +36,9 @@ public class OrderTypeValidator implements FixValidator {
 
   @Override
   public ValidationError validate(RawTag rawTag, FixMessageContext context) {
-    return Optional.ofNullable(rawTag.value())
-        .map(side -> acceptedValues.contains(side) ? ValidationError.empty() 
+    return acceptedValues.contains(rawTag.value()) ? ValidationError.empty()
         : ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error("Provided Order Type (tag 40) is unsupported or invalid!").build())
-        .orElse(ValidationError.builder().submittedTag(rawTag).critical(true)
-            .error(EMPTY_OR_NULL_VALUE).build());
+            .error("Provided Order Type (tag 40) is unsupported or invalid!").build();
   }
   
   @Override

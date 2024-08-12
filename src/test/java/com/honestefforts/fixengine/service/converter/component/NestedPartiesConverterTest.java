@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,17 +19,15 @@ public class NestedPartiesConverterTest {
 
   @Test
   void convert_happyPath() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(539, "1"),
-            getRawTagEntry(524, "string1"),
-            getRawTagEntry(525, "a"),
-            getRawTagEntry(538, "2"),
-            getRawTagEntry(804, "3"),
-            getRawTagEntry(545, "string2"),
-            getRawTagEntry(805, "4")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(539, "1"),
+        getRawTagEntry(524, "string1"),
+        getRawTagEntry(525, "a"),
+        getRawTagEntry(538, "2"),
+        getRawTagEntry(804, "3"),
+        getRawTagEntry(545, "string2"),
+        getRawTagEntry(805, "4")
+    ));
 
     assertThat(NestedPartiesConverter.convert(context))
         .usingRecursiveComparison()
@@ -46,9 +45,7 @@ public class NestedPartiesConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThat(NestedPartiesConverter.convert(context))
         .usingRecursiveComparison()
@@ -58,12 +55,10 @@ public class NestedPartiesConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(NestedPartiesConverter.convert(context))
         .usingRecursiveComparison()
@@ -75,9 +70,7 @@ public class NestedPartiesConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> NestedPartiesConverter.convert(context))
         .isInstanceOf(expectedException);

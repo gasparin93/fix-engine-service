@@ -1,47 +1,40 @@
 package com.honestefforts.fixengine.service.validation.body;
 
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
+import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseUtcTimestamp;
+
 import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import com.honestefforts.fixengine.service.config.ClordidValidationConfig;
-import com.honestefforts.fixengine.service.converter.util.CommonConversionUtil;
+import com.honestefforts.fixengine.service.model.BloomFilterWrapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class ClordidValidator implements FixValidator {
   private static final Set<String> applicableMessageTypes = Set.of("D");
-  private BloomFilter<String> bloomFilter;
-  private final ClordidValidationConfig clordidValidationConfig;
-  private final ReentrantLock lock;
-  private LocalDate currentDay;
-
-  @Autowired
-  private ClordidValidator(ClordidValidationConfig clordidValidationConfig) {
-    this.clordidValidationConfig = clordidValidationConfig;
-    initializeBloomFilter();
-    this.currentDay = LocalDate.now();
-    this.lock = new ReentrantLock();
-  }
+  private final BloomFilterWrapper bloomFilter;
+  private final ReentrantLock lock = new ReentrantLock();
+  @Getter
+  private LocalDate currentDay = LocalDate.now();
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
     return Optional.ofNullable(context.getValueForTag(60))
-        .map(CommonConversionUtil::parseUtcTimestamp)
+        .map(ClordidValidator::parseUtcTimestampAndCatchExceptions)
         .map(LocalDateTime::toLocalDate)
         .map(transactDate -> {
           lock.lock();
           try {
             if (!transactDate.equals(currentDay)) {
-              initializeBloomFilter();
+              bloomFilter.reset();
               currentDay = transactDate;
             }
             if (bloomFilter.mightContain(rawTag.value())) {
@@ -61,10 +54,12 @@ public class ClordidValidator implements FixValidator {
         .orElse(ValidationError.empty()); //transact date is invalid, that validator will yield critical error
   }
 
-  private void initializeBloomFilter() {
-    bloomFilter = BloomFilter.create(Funnels.unencodedCharsFunnel(),
-        clordidValidationConfig.getExpectedInsertions(),
-        clordidValidationConfig.getFalsePositiveProbability());
+  private static LocalDateTime parseUtcTimestampAndCatchExceptions(String transactDateStr) {
+    try {
+      return parseUtcTimestamp(transactDateStr);
+    } catch(Exception e) {
+      return null;
+    }
   }
 
   @Override

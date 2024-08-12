@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateToString;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,19 +26,17 @@ public class FinancingDetailsConverterTest {
     LocalDate today = LocalDate.now();
     LocalDate tomorrow = today.plusDays(1);
     LocalDate nextWeek = today.plusWeeks(1);
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(913, "string"),
-            getRawTagEntry(914, "string"),
-            getRawTagEntry(915, parseDateToString(today)),
-            getRawTagEntry(918, Currency.USD.name()),
-            getRawTagEntry(788, "1"),
-            getRawTagEntry(916, parseDateToString(tomorrow)),
-            getRawTagEntry(917, parseDateToString(nextWeek)),
-            getRawTagEntry(919, "2"),
-            getRawTagEntry(898, "3.2")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(913, "string"),
+        getRawTagEntry(914, "string"),
+        getRawTagEntry(915, parseDateToString(today)),
+        getRawTagEntry(918, Currency.USD.name()),
+        getRawTagEntry(788, "1"),
+        getRawTagEntry(916, parseDateToString(tomorrow)),
+        getRawTagEntry(917, parseDateToString(nextWeek)),
+        getRawTagEntry(919, "2"),
+        getRawTagEntry(898, "3.2")
+    ));
 
     assertThat(FinancingDetailsConverter.convert(context))
         .usingRecursiveComparison()
@@ -57,9 +56,7 @@ public class FinancingDetailsConverterTest {
 
   @Test
   void convert_emptyMap_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThat(FinancingDetailsConverter.convert(context))
         .usingRecursiveComparison()
@@ -69,12 +66,10 @@ public class FinancingDetailsConverterTest {
 
   @Test
   void convert_unsupportedTags_expectEmptyObject() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(35, "8"),
-            getRawTagEntry(8, null)
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(35, "8"),
+        getRawTagEntry(8, null)
+    ));
 
     assertThat(FinancingDetailsConverter.convert(context))
         .usingRecursiveComparison()
@@ -86,9 +81,7 @@ public class FinancingDetailsConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> FinancingDetailsConverter.convert(context))
         .isInstanceOf(expectedException);

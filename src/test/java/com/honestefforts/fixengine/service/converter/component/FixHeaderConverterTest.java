@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeMsToString;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeToString;
@@ -27,41 +28,38 @@ public class FixHeaderConverterTest {
 
   @Test
   void convert_happyPath() {
-
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(8, "string1"),
-            getRawTagEntry(9, "1"),
-            getRawTagEntry(35, "string2"),
-            getRawTagEntry(34, "2"),
-            getRawTagEntry(52, parseDateTimeToString(now)),
-            getRawTagEntry(49, "string3"),
-            getRawTagEntry(56, "string4"),
-            getRawTagEntry(115, "string5"),
-            getRawTagEntry(128, "string6"),
-            getRawTagEntry(90, "3"),
-            getRawTagEntry(91, "string7"),
-            getRawTagEntry(50, "string8"),
-            getRawTagEntry(142, "string9"),
-            getRawTagEntry(57, "string10"),
-            getRawTagEntry(143, "string11"),
-            getRawTagEntry(116, "string12"),
-            getRawTagEntry(144, "string13"),
-            getRawTagEntry(129, "string14"),
-            getRawTagEntry(145, "string15"),
-            getRawTagEntry(43, "Y"),
-            getRawTagEntry(97, "N"),
-            getRawTagEntry(122, parseDateTimeMsToString(anHourFromNow)),
-            getRawTagEntry(212, "4"),
-            getRawTagEntry(213, "string16"),
-            getRawTagEntry(347, "string17"),
-            getRawTagEntry(369, "5"),
-            getRawTagEntry(627, "6"),
-            getRawTagEntry(628, "string18"),
-            getRawTagEntry(629, parseDateTimeToString(fiveMinutesAgo)),
-            getRawTagEntry(630, "string19")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(8, "string1"),
+        getRawTagEntry(9, "1"),
+        getRawTagEntry(35, "string2"),
+        getRawTagEntry(34, "2"),
+        getRawTagEntry(52, parseDateTimeToString(now)),
+        getRawTagEntry(49, "string3"),
+        getRawTagEntry(56, "string4"),
+        getRawTagEntry(115, "string5"),
+        getRawTagEntry(128, "string6"),
+        getRawTagEntry(90, "3"),
+        getRawTagEntry(91, "string7"),
+        getRawTagEntry(50, "string8"),
+        getRawTagEntry(142, "string9"),
+        getRawTagEntry(57, "string10"),
+        getRawTagEntry(143, "string11"),
+        getRawTagEntry(116, "string12"),
+        getRawTagEntry(144, "string13"),
+        getRawTagEntry(129, "string14"),
+        getRawTagEntry(145, "string15"),
+        getRawTagEntry(43, "Y"),
+        getRawTagEntry(97, "N"),
+        getRawTagEntry(122, parseDateTimeMsToString(anHourFromNow)),
+        getRawTagEntry(212, "4"),
+        getRawTagEntry(213, "string16"),
+        getRawTagEntry(347, "string17"),
+        getRawTagEntry(369, "5"),
+        getRawTagEntry(627, "6"),
+        getRawTagEntry(628, "string18"),
+        getRawTagEntry(629, parseDateTimeToString(fiveMinutesAgo)),
+        getRawTagEntry(630, "string19")
+    ));
 
     assertThat(FixHeaderConverter.convert(context))
         .usingRecursiveComparison()
@@ -102,9 +100,7 @@ public class FixHeaderConverterTest {
 
   @Test
   void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThatThrownBy(() -> FixHeaderConverter.convert(context))
         .isInstanceOf(NullPointerException.class);
@@ -112,20 +108,18 @@ public class FixHeaderConverterTest {
 
   @Test
   void convert_unsupportedTags_expectOnlyRequiredTags() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(8, "string1"),
-            getRawTagEntry(9, "1"),
-            getRawTagEntry(35, "string2"),
-            getRawTagEntry(34, "2"),
-            getRawTagEntry(52, parseDateTimeToString(now)),
-            getRawTagEntry(49, "string3"),
-            getRawTagEntry(56, "string4"),
-            getRawTagEntry(1, "8"),
-            getRawTagEntry(2, null),
-            getRawTagEntry(3, "3")
-        ))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(
+        getRawTagEntry(8, "string1"),
+        getRawTagEntry(9, "1"),
+        getRawTagEntry(35, "string2"),
+        getRawTagEntry(34, "2"),
+        getRawTagEntry(52, parseDateTimeToString(now)),
+        getRawTagEntry(49, "string3"),
+        getRawTagEntry(56, "string4"),
+        getRawTagEntry(1, "8"),
+        getRawTagEntry(2, null),
+        getRawTagEntry(3, "3")
+    ));
 
     assertThat(FixHeaderConverter.convert(context))
         .usingRecursiveComparison()
@@ -145,9 +139,7 @@ public class FixHeaderConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext(Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> FixHeaderConverter.convert(context))
         .isInstanceOf(expectedException);

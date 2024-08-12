@@ -11,8 +11,8 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
-import com.honestefforts.fixengine.model.message.NewOrderSingle.NewOrderSingleBuilder;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle.NewOrderSingleBuilder;
 import com.honestefforts.fixengine.model.universal.Currency;
 import com.honestefforts.fixengine.model.universal.MarketIdentifierCode;
 import com.honestefforts.fixengine.service.converter.component.CommissionDataConverter;

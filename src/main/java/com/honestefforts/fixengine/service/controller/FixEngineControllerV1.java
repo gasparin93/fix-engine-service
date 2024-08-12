@@ -56,7 +56,7 @@ public class FixEngineControllerV1 {
             .errors(List.of(ValidationError.builder().critical(true)
                 .error("Provided FIX version " + request.getVersion() + " is not supported")
                 .submittedTag(RawTag.builder().value(request.getVersion())
-                    .version(request.getVersion()).dataType(TagType.CHARACTER).build())
+                    .dataType(TagType.CHARACTER).build())
                 .build()))
             .build());
   }

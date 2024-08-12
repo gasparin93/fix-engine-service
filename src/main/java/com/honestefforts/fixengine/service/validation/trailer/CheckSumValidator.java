@@ -14,11 +14,11 @@ public class CheckSumValidator implements FixValidator {
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
-    if(rawTag.position() != context.messageLength()) {
+    if(rawTag.position() != context.messageLength()) { //null is filtered out on factory
       return ValidationError.builder().critical(true).submittedTag(rawTag)
           .error("CheckSum (10) tag must be the last tag in the message!").build();
     }
-    return rawTag.errorIfNotCompliant(true);
+    return ValidationError.empty();
   }
 
   @Override

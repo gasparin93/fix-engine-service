@@ -25,7 +25,7 @@ public class MessageTypeValidator implements FixValidator {
   private final Set<String> supportedMsgTypes;
 
   @Autowired
-  private MessageTypeValidator(List<FixConverter<?>> fixConverters) {
+  public MessageTypeValidator(List<FixConverter<?>> fixConverters) {
     this.supportedMsgTypes = fixConverters.stream()
         .map(FixConverter::supports)
         .collect(Collectors.toSet());
@@ -132,9 +132,7 @@ public class MessageTypeValidator implements FixValidator {
   public ValidationError validate(RawTag rawTag, FixMessageContext context) {
     ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
         .critical(true).submittedTag(rawTag);
-    if(StringUtil.isNullOrEmpty(rawTag.value())) {
-      return validationErrorBuilder.error(REQUIRED_ERROR_MSG).build();
-    }
+
     if(rawTag.position() != 3) {
       return validationErrorBuilder
           .error("MsgType (35) tag must be the third tag in the message!").build();

@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.messagetypes;
 
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeMsToString;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeToString;
@@ -11,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.components.CommissionData;
 import com.honestefforts.fixengine.model.message.components.DiscretionInstructions;
 import com.honestefforts.fixengine.model.message.components.FinancingDetails;
@@ -82,7 +83,7 @@ public class NewOrderSingleConverterTest {
   private static MockedStatic<CommissionDataConverter> commissionDataConverter;
 
   @BeforeAll
-  public static void setUp() {
+  static void setUp() {
     fixHeaderConverter = mockStatic(FixHeaderConverter.class);
     fixTrailerConverter = mockStatic(FixTrailerConverter.class);
     instrumentConverter = mockStatic(InstrumentConverter.class);
@@ -115,7 +116,7 @@ public class NewOrderSingleConverterTest {
   }
 
   @AfterAll
-  public static void tearDown() {
+  static void tearDown() {
     fixHeaderConverter.close();
     fixTrailerConverter.close();
     instrumentConverter.close();
@@ -134,82 +135,80 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_happyPath() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(11, "string1"),
-            getRawTagEntry(54, "a"),
-            getRawTagEntry(60, parseDateTimeToString(now)),
-            getRawTagEntry(40, "b"),
-            getRawTagEntry(526, "string2"),
-            getRawTagEntry(583, "string3"),
-            getRawTagEntry(229, parseDateToString(today)),
-            getRawTagEntry(75, parseDateToString(today)),
-            getRawTagEntry(1, "string4"),
-            getRawTagEntry(660, "1"),
-            getRawTagEntry(581, "2"),
-            getRawTagEntry(589, "c"),
-            getRawTagEntry(590, "d"),
-            getRawTagEntry(70, "string5"),
-            getRawTagEntry(78, "2"),
-            getRawTagEntry(79, "string6"),
-            getRawTagEntry(661, "3"),
-            getRawTagEntry(736, Currency.USD.name()),
-            getRawTagEntry(467, "string7"),
-            getRawTagEntry(80, "1.0"),
-            getRawTagEntry(63, "e"),
-            getRawTagEntry(64, parseDateToString(today)),
-            getRawTagEntry(544, "f"),
-            getRawTagEntry(625, "string8"),
-            getRawTagEntry(21, "g"),
-            getRawTagEntry(18, "h i j k"),
-            getRawTagEntry(110, "2.0"),
-            getRawTagEntry(111, "3.0"),
-            getRawTagEntry(100, MarketIdentifierCode.ABXX.name()),
-            getRawTagEntry(386, "4"),
-            getRawTagEntry(336, "string9"),
-            getRawTagEntry(635, "string10"),
-            getRawTagEntry(81, "l"),
-            getRawTagEntry(711, "5"),
-            getRawTagEntry(140, "4.0"),
-            getRawTagEntry(114, "Y"),
-            getRawTagEntry(854, "6"),
-            getRawTagEntry(423, "7"),
-            getRawTagEntry(44, "5.0"),
-            getRawTagEntry(99, "6.0"),
-            getRawTagEntry(15, Currency.USD.name()),
-            getRawTagEntry(376, "string11"),
-            getRawTagEntry(377, "N"),
-            getRawTagEntry(23, "string12"),
-            getRawTagEntry(117, "string13"),
-            getRawTagEntry(59, "m"),
-            getRawTagEntry(168, parseDateTimeMsToString(fiveMinutesAgo)),
-            getRawTagEntry(432, parseDateToString(today)),
-            getRawTagEntry(126, parseDateTimeToString(now)),
-            getRawTagEntry(427, "8"),
-            getRawTagEntry(528, "n"),
-            getRawTagEntry(529, "str1 str2 str3"),
-            getRawTagEntry(582, "9"),
-            getRawTagEntry(121, "Y"),
-            getRawTagEntry(120, Currency.USD.name()),
-            getRawTagEntry(775, "10"),
-            getRawTagEntry(58, "string14"),
-            getRawTagEntry(354, "11"),
-            getRawTagEntry(355, "string15"),
-            getRawTagEntry(193, parseDateToString(today)),
-            getRawTagEntry(192, "12"),
-            getRawTagEntry(640, "7.0"),
-            getRawTagEntry(77, "o"),
-            getRawTagEntry(203, "13"),
-            getRawTagEntry(210, "14"),
-            getRawTagEntry(847, "15"),
-            getRawTagEntry(848, "string16"),
-            getRawTagEntry(849, "8.0"),
-            getRawTagEntry(480, "p"),
-            getRawTagEntry(481, "q"),
-            getRawTagEntry(513, "string17"),
-            getRawTagEntry(494, "string18")
-        ))
-        .build();
+    FixMessageContext context = getContext("D", Map.ofEntries(
+        getRawTagEntry(11, "string1"),
+        getRawTagEntry(54, "a"),
+        getRawTagEntry(60, parseDateTimeToString(now)),
+        getRawTagEntry(40, "b"),
+        getRawTagEntry(526, "string2"),
+        getRawTagEntry(583, "string3"),
+        getRawTagEntry(229, parseDateToString(today)),
+        getRawTagEntry(75, parseDateToString(today)),
+        getRawTagEntry(1, "string4"),
+        getRawTagEntry(660, "1"),
+        getRawTagEntry(581, "2"),
+        getRawTagEntry(589, "c"),
+        getRawTagEntry(590, "d"),
+        getRawTagEntry(70, "string5"),
+        getRawTagEntry(78, "2"),
+        getRawTagEntry(79, "string6"),
+        getRawTagEntry(661, "3"),
+        getRawTagEntry(736, Currency.USD.name()),
+        getRawTagEntry(467, "string7"),
+        getRawTagEntry(80, "1.0"),
+        getRawTagEntry(63, "e"),
+        getRawTagEntry(64, parseDateToString(today)),
+        getRawTagEntry(544, "f"),
+        getRawTagEntry(625, "string8"),
+        getRawTagEntry(21, "g"),
+        getRawTagEntry(18, "h i j k"),
+        getRawTagEntry(110, "2.0"),
+        getRawTagEntry(111, "3.0"),
+        getRawTagEntry(100, MarketIdentifierCode.ABXX.name()),
+        getRawTagEntry(386, "4"),
+        getRawTagEntry(336, "string9"),
+        getRawTagEntry(635, "string10"),
+        getRawTagEntry(81, "l"),
+        getRawTagEntry(711, "5"),
+        getRawTagEntry(140, "4.0"),
+        getRawTagEntry(114, "Y"),
+        getRawTagEntry(854, "6"),
+        getRawTagEntry(423, "7"),
+        getRawTagEntry(44, "5.0"),
+        getRawTagEntry(99, "6.0"),
+        getRawTagEntry(15, Currency.USD.name()),
+        getRawTagEntry(376, "string11"),
+        getRawTagEntry(377, "N"),
+        getRawTagEntry(23, "string12"),
+        getRawTagEntry(117, "string13"),
+        getRawTagEntry(59, "m"),
+        getRawTagEntry(168, parseDateTimeMsToString(fiveMinutesAgo)),
+        getRawTagEntry(432, parseDateToString(today)),
+        getRawTagEntry(126, parseDateTimeToString(now)),
+        getRawTagEntry(427, "8"),
+        getRawTagEntry(528, "n"),
+        getRawTagEntry(529, "str1 str2 str3"),
+        getRawTagEntry(582, "9"),
+        getRawTagEntry(121, "Y"),
+        getRawTagEntry(120, Currency.USD.name()),
+        getRawTagEntry(775, "10"),
+        getRawTagEntry(58, "string14"),
+        getRawTagEntry(354, "11"),
+        getRawTagEntry(355, "string15"),
+        getRawTagEntry(193, parseDateToString(today)),
+        getRawTagEntry(192, "12"),
+        getRawTagEntry(640, "7.0"),
+        getRawTagEntry(77, "o"),
+        getRawTagEntry(203, "13"),
+        getRawTagEntry(210, "14"),
+        getRawTagEntry(847, "15"),
+        getRawTagEntry(848, "string16"),
+        getRawTagEntry(849, "8.0"),
+        getRawTagEntry(480, "p"),
+        getRawTagEntry(481, "q"),
+        getRawTagEntry(513, "string17"),
+        getRawTagEntry(494, "string18")
+    ));
 
     assertThat(converter.convert(context))
         .usingRecursiveComparison()
@@ -306,9 +305,7 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.of())
-        .build();
+    FixMessageContext context = getContext("D");
 
     assertThatThrownBy(() -> converter.convert(context))
         .isInstanceOf(NullPointerException.class);
@@ -316,16 +313,14 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_unsupportedTags_expectOnlyRequiredTags() {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(
-            getRawTagEntry(11, "string1"),
-            getRawTagEntry(54, "a"),
-            getRawTagEntry(60, parseDateTimeToString(now)),
-            getRawTagEntry(40, "b"),
-            getRawTagEntry(501, null),
-            getRawTagEntry(500, "3")
-        ))
-        .build();
+    FixMessageContext context = getContext("D", Map.ofEntries(
+        getRawTagEntry(11, "string1"),
+        getRawTagEntry(54, "a"),
+        getRawTagEntry(60, parseDateTimeToString(now)),
+        getRawTagEntry(40, "b"),
+        getRawTagEntry(501, null),
+        getRawTagEntry(500, "3")
+    ));
 
     assertThat(converter.convert(context))
         .usingRecursiveComparison()
@@ -356,9 +351,7 @@ public class NewOrderSingleConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = FixMessageContext.builder()
-        .processedMessages(Map.ofEntries(tagEntry))
-        .build();
+    FixMessageContext context = getContext("D", Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> converter.convert(context))
         .isInstanceOf(expectedException);
