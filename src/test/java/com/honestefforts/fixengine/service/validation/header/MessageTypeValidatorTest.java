@@ -1,168 +1,99 @@
 package com.honestefforts.fixengine.service.validation.header;
 
-import ch.qos.logback.core.util.StringUtil;
+import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.honestefforts.fixengine.model.converter.FixConverter;
-import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Validator for tag 35 (MsgType)
- * <br>
- * Will use SpringBoot injection to determine what converters are available and hence supported
- * by the application.
- */
-@Component
-public class MessageTypeValidatorTest implements FixValidator {
+@ExtendWith(MockitoExtension.class)
+public class MessageTypeValidatorTest {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
-  private final Set<String> supportedMsgTypes;
+  @Mock
+  FixConverter<NewOrderSingle> converter;
 
-  @Autowired
-  private MessageTypeValidatorTest(List<FixConverter<?>> fixConverters) {
-    this.supportedMsgTypes = fixConverters.stream()
-        .map(FixConverter::supports)
-        .collect(Collectors.toSet());
+  MessageTypeValidator validator;
+
+  @BeforeEach
+  void setUp() {
+    when(converter.supports()).thenReturn("D");
+    validator = new MessageTypeValidator(List.of(converter));
   }
 
-  //if private type (U*) support is added, must be added here also
-  private static final Set<String> acceptedValues = Set.of(
-      "0",  //Heartbeat <0>
-      "1",  //Test Request <1>
-      "2",  //Resend Request <2>
-      "3",  //Reject <3>
-      "4",  //Sequence Reset <4>
-      "5",  //Logout <5>
-      "6",  //Indication of Interest <6>
-      "7",  //Advertisement <7>
-      "8",  //Execution Report <8>
-      "9",  //Order Cancel Reject <9>
-      "A",  //Logon <A>
-      "B",  //News <B>
-      "C",  //Email <C>
-      "D",   //New Order Single <D>
-      "E",  //New Order List <E>
-      "F",  //Order Cancel Request <F>
-      "G",  //Order Cancel/Replace Request <G>
-      "H",  //Order Status Request <H>
-      "J",  //Allocation Instruction <J>
-      "K",  //List Cancel Request <K>
-      "L",  //List Execute <L>
-      "M",  //List Status Request <M>
-      "N",  //List Status <N>
-      "P",  //Allocation Instruction Ack <P>
-      "Q",  //Don't Know Trade <Q> (DK)
-      "R",  //Quote Request <R>
-      "S",  //Quote <S>
-      "T",  //Settlement Instructions <T>
-      "V",  //Market Data Request <V>
-      "W",  //Market Data-Snapshot/Full Refresh <W>
-      "X",  //Market Data-Incremental Refresh <X>
-      "Y",  //Market Data Request Reject <Y>
-      "Z",  //Quote Cancel <Z>
-      "a",  //Quote Status Request <a>
-      "b",  //Mass Quote Acknowledgement <b>
-      "c",  //Security Definition Request <c>
-      "d",  //Security Definition <d>
-      "e",  //Security Status Request <e>
-      "f",  //Security Status <f>
-      "g",  //Trading Session Status Request <g>
-      "h",  //Trading Session Status <h>
-      "i",  //Mass Quote <i>
-      "j",  //Business Message Reject <j>
-      "k",  //Bid Request <k>
-      "l",  //Bid Response <l> (lowercase L)
-      "m",  //List Strike Price <m>
-      "n",  //XML message <n> (e.g. non-FIX MsgType)
-      "o",  //Registration Instructions <o>
-      "p",  //Registration Instructions Response <p>
-      "q",  //Order Mass Cancel Request <q>
-      "r",  //Order Mass Cancel Report <r>
-      "s",  //New Order Cross <s>
-      "t",  //Cross Order Cancel/Replace Request <t> (a.k.a. Cross Order Modification Request)
-      "u",  //Cross Order Cancel Request <u>
-      "v",  //Security Type Request <v>
-      "w",  //Security Types <w>
-      "x",  //Security List Request <x>
-      "y",  //Security List <y>
-      "z",  //Derivative Security List Request <z>
-      "AA", //Derivative Security List <AA>
-      "AB", //New Order Multileg <AB>
-      "AC", //Multileg Order Cancel/Replace <AC> (a.k.a. Multileg Order Modification Request)
-      "AD", //Trade Capture Report Request <AD>
-      "AE", //Trade Capture Report <AE>
-      "AF", //Order Mass Status Request <AF>
-      "AG", //Quote Request Reject <AG>
-      "AH", //RFQ Request <AH>
-      "AI", //Quote Status Report <AI>
-      "AJ", //Quote Response <AJ>
-      "AK", //Confirmation <AK>
-      "AL", //Position Maintenance Request <AL>
-      "AM", //Position Maintenance Report <AM>
-      "AN", //Request For Positions <AN>
-      "AO", //Request For Positions Ack <AO>
-      "AP", //Position Report <AP>
-      "AQ", //Trade Capture Report Request Ack <AQ>
-      "AR", //Trade Capture Report Ack <AR>
-      "AS", //Allocation Report <AS> (aka Allocation Claim)
-      "AT", //Allocation Report Ack <AT> (aka Allocation Claim Ack)
-      "AU", //Confirmation Ack <AU> (aka Affirmation)
-      "AV", //Settlement Instruction Request <AV>
-      "AW", //Assignment Report <AW>
-      "AX", //Collateral Request <AX>
-      "AY", //Collateral Assignment <AY>
-      "AZ", //Collateral Response <AZ>
-      "BA", //Collateral Report <BA>
-      "BB", //Collateral Inquiry <BB>
-      "BC", //Network (Counterparty System) Status Request <BC>
-      "BD", //Network (Counterparty System) Status Response <BD>
-      "BE", //User Request <BE>
-      "BF", //User Response <BF>
-      "BG", //Collateral Inquiry Ack <BG>
-      "BH"  //Confirmation Request <BH>
-  );
+  @ParameterizedTest
+  @CsvSource({"D"})
+  void validate_happyPath(String type) {
+    ValidationError validationResult = validator.validate(
+        RawTag.builder().tag(35).dataType(STRING).value(type).position(3).build(),
+        getContext("D"));
 
-  @Override
-  public ValidationError validate(RawTag rawTag, FixMessageContext context) {
-    ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
-        .critical(true).submittedTag(rawTag);
-    if(StringUtil.isNullOrEmpty(rawTag.value())) {
-      return validationErrorBuilder.error(REQUIRED_ERROR_MSG).build();
-    }
-    if(rawTag.position() != 3) {
-      return validationErrorBuilder
-          .error("MsgType (35) tag must be the third tag in the message!").build();
-    }
-    if(!acceptedValues.contains(rawTag.value())) {
-      if(isCustomType(rawTag)) {
-        return validationErrorBuilder.error("Unknown private message format!").build();
-      }
-      return validationErrorBuilder.error("Message type is invalid!").build();
-    }
-    if(!supportedMsgTypes.contains(rawTag.value())) {
-      return validationErrorBuilder.error("Message Type is not currently supported!").build();
-    }
-    return ValidationError.empty();
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking().isEqualTo(ValidationError.empty());
+    assertThat(validationResult.hasErrors()).isFalse();
   }
 
-  private boolean isCustomType(RawTag rawTag) {
-    return rawTag.value().charAt(0) == 'U';
+  @Test
+  void validate_notThirdInMessage_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(35).dataType(STRING).value("D").position(2).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("MsgType (35) tag must be the third tag in the message!").build());
   }
 
-  @Override
-  public Integer supports() {
-    return 35;
+  @Test
+  void validate_invalidType_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(35).dataType(STRING).value("ABCD").position(3).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("Message type is invalid!").build());
   }
 
-  @Override
-  public boolean applicableToMessageType(String messageType) {
-    return applicableMessageTypes.contains(messageType);
+  @Test
+  void validate_customType_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(35).dataType(STRING).value("UXX").position(3).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("Unknown private message format!").build());
+  }
+
+  @Test
+  void validate_unsupportedType_expectValidationError() {
+    RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("BH").position(3).build();
+    ValidationError validationResult = validator.validate(tag, getContext("D"));
+
+    assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error("Message Type is not currently supported!").build());
+  }
+
+  @Test
+  void supports_tag35() {
+    assertThat(validator.supports()).isEqualTo(35);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"D, true",
+              "A, false"})
+  void applicableToMessageType(String messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType))
+        .isEqualTo(isSupported);
   }
 
 }
