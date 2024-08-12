@@ -13,10 +13,10 @@ import java.util.Map;
  */
 public class RequiredComponentValidation {
 
-  private static final Map<String, List<Component>> messageTypeToRequiredComponents = Map.of(
+  private static final Map<String, List<FixComponent>> messageTypeToRequiredComponents = Map.of(
       "D", List.of(
-          new Component("Instrument", Instrument.getSupportedTags()),
-          new Component("OrderQuantityData", OrderQuantityData.getSupportedTags())
+          new FixComponent("Instrument", Instrument.getSupportedTags()),
+          new FixComponent("OrderQuantityData", OrderQuantityData.getSupportedTags())
       )
   );
 
@@ -36,6 +36,7 @@ public class RequiredComponentValidation {
         .toList();
   }
 
-  private record Component(String componentName, List<Integer> componentTags) {}
+  //TODO: these would be more modular with injection
+  private record FixComponent(String componentName, List<Integer> componentTags) {}
 
 }

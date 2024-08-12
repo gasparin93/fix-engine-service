@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class FixValidatorFactory {
   private final Map<Integer, FixValidator> validatorMap;
   private static final Map<String, Set<Integer>> requiredTagsByMsgType = Map.of(
-      "D", Set.of(34, 49, 52, 56, 60)
+      "D", Set.of(11, 34, 40, 49, 52, 54, 56, 60)
   );
   private static final Set<Integer> supportedTags = IntStream.range(1, 957) //1-956
       .filter(num -> num != 101 && num != 261 && num != 809)
@@ -29,7 +29,7 @@ public class FixValidatorFactory {
       .collect(Collectors.toSet());
 
   @Autowired
-  private FixValidatorFactory(List<FixValidator> validators) {
+  public FixValidatorFactory(List<FixValidator> validators) {
     validatorMap = validators.stream()
         .collect(Collectors.toMap(FixValidator::supports, Function.identity()));
   }
