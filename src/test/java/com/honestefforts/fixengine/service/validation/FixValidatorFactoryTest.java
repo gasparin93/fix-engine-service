@@ -2,60 +2,139 @@ package com.honestefforts.fixengine.service.validation;
 
 import static com.honestefforts.fixengine.model.validation.FixValidator.EMPTY_OR_NULL_VALUE;
 import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
+import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.honestefforts.fixengine.model.message.FixMessageContext;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@Component
+@ExtendWith(MockitoExtension.class)
 public class FixValidatorFactoryTest {
-  private final Map<Integer, FixValidator> validatorMap;
-  private static final Map<String, Set<Integer>> requiredGenericValidationTagsByMsgType = Map.of(
-      "D", Set.of(34, 49, 52, 56, 60)
-  );
-  private static final Set<Integer> supportedTags = IntStream.range(1, 957) //1-956
-      .filter(num -> num != 101 && num != 261 && num != 809)
-      .boxed()
-      .collect(Collectors.toSet());
 
-  @Autowired
-  private FixValidatorFactoryTest(List<FixValidator> validators) {
-    validatorMap = validators.stream()
-        .collect(Collectors.toMap(FixValidator::supports, Function.identity()));
+  private static final int A_REQUIRED_TAG = 11;
+  private static final int AN_OPTIONAL_TAG = 526;
+  private static final int A_TAG = 17;
+
+  @Mock
+  FixValidator validator;
+  FixValidatorFactory factory;
+
+  @Test
+  void validateTag_tagSpecificValidation_happyPath() {
+    when(validator.supports()).thenReturn(A_TAG);
+    factory = new FixValidatorFactory(List.of(validator));
+
+    when(validator.applicableToMessageType(any())).thenReturn(true);
+    when(validator.validate(any(), any())).thenReturn(ValidationError.empty());
+
+    ValidationError validationError = factory.validateTag(getRawTag(A_TAG, "text"),
+        getContext("D"));
+
+    assertThat(validationError.isEmpty()).isTrue();
+    verify(validator, times(1)).validate(any(), any());
   }
 
-  public ValidationError validateTag(RawTag rawTag, FixMessageContext context) {
-    return Optional.ofNullable(validatorMap.get(rawTag.tag()))
-        .filter(fixValidator -> fixValidator.applicableToMessageType(context.messageType()))
-        .map(fixValidator -> fixValidator.validate(rawTag, context))
-        .orElse(isASupportedTag(rawTag) ?
-           doGenericValidation(rawTag, context.messageType())
-            : ValidationError.builder().submittedTag(rawTag).error("Unsupported tag").build());
+  @Test
+  void validateTag_genericTypeBasedValidation_happyPath() {
+    when(validator.supports()).thenReturn(AN_OPTIONAL_TAG);
+    factory = new FixValidatorFactory(List.of(validator));
+
+    ValidationError validationError = factory.validateTag(getRawTag(A_TAG, "text"),
+        getContext("D"));
+
+    assertThat(validationError.isEmpty()).isTrue();
+    verify(validator, times(0)).validate(any(), any());
   }
 
-  public static boolean isASupportedTag(RawTag rawTag) {
-    return supportedTags.contains(rawTag.tag());
+  @Test
+  void validateTag_invalidTag_expectValidationError() {
+    when(validator.supports()).thenReturn(A_TAG);
+    factory = new FixValidatorFactory(List.of(validator));
+
+    RawTag tag = getRawTag(9999, "text");
+    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+
+    assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).error("Unsupported tag").build());
   }
 
-  private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
-    boolean isCritical = Optional.ofNullable(requiredGenericValidationTagsByMsgType.get(messageType))
-        .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
-        .orElse(false);
-    return Optional.ofNullable(rawTag.value())
-        .filter(val -> !val.isBlank())
-        .map(_ -> rawTag.errorIfNotCompliant(isCritical))
-        .orElse(ValidationError.builder().critical(isCritical).submittedTag(rawTag)
-            .error(isCritical ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
+  @ParameterizedTest
+  @CsvSource(value= {"null,"}, nullValues={"null"})
+  void validateTag_tagSpecificValidationWithNullOrEmptyRequiredValue_expectValidationError(
+      String value) {
+    when(validator.supports()).thenReturn(11);
+    factory = new FixValidatorFactory(List.of(validator));
+    when(validator.applicableToMessageType(any())).thenReturn(true);
+
+    RawTag tag = getRawTag(11, value);
+    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+
+    assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
+            .error(REQUIRED_ERROR_MSG).build());
+
+    verify(validator, times(1)).applicableToMessageType(any());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value= {
+      "null,true",",true",
+      "null,false",",false"
+  }, nullValues={"null"})
+  void validateTag_tagSpecificValidationWithNullOrEmptyRequiredValue_expectValidationError(
+      String value, boolean isRequired) {
+    Integer tagUsed = isRequired ? A_REQUIRED_TAG : AN_OPTIONAL_TAG;
+    when(validator.supports()).thenReturn(tagUsed);
+    factory = new FixValidatorFactory(List.of(validator));
+    when(validator.applicableToMessageType(any())).thenReturn(true);
+
+    RawTag tag = getRawTag(tagUsed, value);
+    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+
+    assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(isRequired)
+            .error(isRequired ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
+
+    verify(validator, times(1)).applicableToMessageType(any());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value= {
+      "null,true",",true",
+      "null,false",",false"
+  }, nullValues={"null"})
+  void validateTag_genericValidationWithNullOrEmptyRequiredValue_expectValidationError(
+      String value, boolean isRequired) {
+    when(validator.supports()).thenReturn(A_TAG);
+    factory = new FixValidatorFactory(List.of(validator));
+
+    RawTag tag = getRawTag(isRequired ? A_REQUIRED_TAG : AN_OPTIONAL_TAG, value);
+    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+
+    assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
+        .isEqualTo(ValidationError.builder().submittedTag(tag).critical(isRequired)
+            .error(isRequired ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
+
+    verify(validator, times(0)).applicableToMessageType(any());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"101, 261, 809, 9999, -1"})
+  void isASupportedTag_unsupportedTags_expectFalse(Integer tag) {
+    assertThat(FixValidatorFactory.isASupportedTag(getRawTag(tag, ""))).isFalse();
   }
 
 }

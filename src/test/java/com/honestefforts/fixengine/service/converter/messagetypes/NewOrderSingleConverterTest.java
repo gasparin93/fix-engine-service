@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.components.CommissionData;
 import com.honestefforts.fixengine.model.message.components.DiscretionInstructions;
 import com.honestefforts.fixengine.model.message.components.FinancingDetails;

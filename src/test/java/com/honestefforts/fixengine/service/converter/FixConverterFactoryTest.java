@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

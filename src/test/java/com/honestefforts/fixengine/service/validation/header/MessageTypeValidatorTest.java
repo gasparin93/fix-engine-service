@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
-import com.honestefforts.fixengine.model.message.NewOrderSingle;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;

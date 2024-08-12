@@ -1,41 +1,56 @@
 package com.honestefforts.fixengine.service.validation;
 
-import com.honestefforts.fixengine.model.message.FixMessageContext;
+import static com.honestefforts.fixengine.service.TestUtility.getContext;
+import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.honestefforts.fixengine.model.message.components.Instrument;
 import com.honestefforts.fixengine.model.message.components.OrderQuantityData;
+import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-/**
- * This utility class is to validate that required components are not empty.
- * MessageHeader and MessageTrailer are required by all and have required tags, no need to include.
- */
 public class RequiredComponentValidationTest {
 
-  private static final Map<String, List<Component>> messageTypeToRequiredComponents = Map.of(
-      "D", List.of(
-          new Component("Instrument", Instrument.getSupportedTags()),
-          new Component("OrderQuantityData", OrderQuantityData.getSupportedTags())
-      )
-  );
-
-  public static List<ValidationError> validateRequiredComponentsForMessageType(
-      FixMessageContext context) {
-    if(!messageTypeToRequiredComponents.containsKey(context.messageType())) {
-      return List.of(); //no required components for message type
-    }
-    return messageTypeToRequiredComponents.get(context.messageType()).stream()
-        .filter(requiredComponent -> requiredComponent.componentTags().stream()
-            .noneMatch(context::hasTag))
-        .map(requiredComponent -> ValidationError.builder().critical(true)
-            .error("Message type " + context.messageType() + " requires "
-                + requiredComponent.componentName() + " component! Requires at least one of: ["
-                + requiredComponent.componentTags() + "]").build()
-        )
-        .toList();
+  @Test
+  void validateRequiredComponentsForMessageType_happyPath() {
+    List<ValidationError> validationErrors = RequiredComponentValidation
+        .validateRequiredComponentsForMessageType(
+            getContext("D", someRequiredTagsForNewOrderSingleComponents()));
+    assertThat(validationErrors).isEmpty();
   }
 
-  private record Component(String componentName, List<Integer> componentTags) {}
+  @Test
+  void validateRequiredComponentsForMessageType_emptyMap_expectValidationErrors() {
+    List<ValidationError> validationErrors = RequiredComponentValidation
+        .validateRequiredComponentsForMessageType(
+            getContext("D", Map.of()));
+    assertThat(validationErrors).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            ValidationError.builder().critical(true)
+                .error("Message type D requires Instrument component! Requires at least one of: ["
+                    + Instrument.getSupportedTags() + "]").build(),
+            ValidationError.builder().critical(true)
+                .error("Message type D requires OrderQuantityData component! Requires at least one of: ["
+                    + OrderQuantityData.getSupportedTags() + "]").build()
+    );
+  }
+
+  @Test
+  void validateRequiredComponentsForMessageType_nonApplicableMessageType_expectNoErrors() {
+    List<ValidationError> validationErrors = RequiredComponentValidation
+        .validateRequiredComponentsForMessageType(
+            getContext("A", someRequiredTagsForNewOrderSingleComponents()));
+    assertThat(validationErrors).isEmpty();
+  }
+
+  private Map<Integer, RawTag> someRequiredTagsForNewOrderSingleComponents() {
+    return Map.ofEntries(
+        getRawTagEntry(55, "text"), //Instrument
+        getRawTagEntry(38, "text")  //OrderQuantityData
+    );
+  }
 
 }
