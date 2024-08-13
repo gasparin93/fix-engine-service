@@ -133,7 +133,7 @@ public class FixEngineService {
 
     return FixMessageContext.builder()
         .processedMessages(map)
-        .messageType(MessageType.valueOf(map.get(35).value()))
+        .messageType(MessageType.getMessageType(map.get(35).value()))
         .messageLength(keyValPair.length)
         .version(version)
         .build();

@@ -1,5 +1,7 @@
 package com.honestefforts.fixengine.service.validation.header;
 
+import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
+
 import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -107,6 +109,9 @@ public class MessageTypeValidator {
   public static ValidationError validate(RawTag rawTag) {
     ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
         .critical(true).submittedTag(rawTag);
+    if((rawTag.value() == null || rawTag.value().isBlank())) {
+      return validationErrorBuilder.error(REQUIRED_ERROR_MSG).build();
+    }
 
     if(rawTag.position() != 3) {
       return validationErrorBuilder
