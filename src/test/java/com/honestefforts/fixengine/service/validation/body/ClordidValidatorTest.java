@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import com.honestefforts.fixengine.service.model.BloomFilterWrapper;
@@ -42,7 +44,7 @@ public class ClordidValidatorTest {
     when(bloomFilter.mightContain(any())).thenReturn(false);
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"), getContext("D",
+        getRawTag(11, "clordid123"), getContext(NEW_ORDER_SINGLE,
             Map.ofEntries(
                 getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now())))));
 
@@ -56,7 +58,7 @@ public class ClordidValidatorTest {
     LocalDate initialDate = validator.getCurrentDay();
     ValidationError validationResult = validator.validate(
         getRawTag(11, "clordid123"),
-        getContext("D",
+        getContext(NEW_ORDER_SINGLE,
             Map.ofEntries(
                 getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now().plusWeeks(1))))));
 
@@ -70,7 +72,7 @@ public class ClordidValidatorTest {
     when(bloomFilter.mightContain(any())).thenReturn(true);
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"), getContext("D",
+        getRawTag(11, "clordid123"), getContext(NEW_ORDER_SINGLE,
             Map.ofEntries(
                 getRawTagEntry(60, parseDateTimeToString(LocalDateTime.now())))));
 
@@ -88,7 +90,7 @@ public class ClordidValidatorTest {
     //TODO: there should be an integrated test to ensure that this is the case
 
     ValidationError validationResult = validator.validate(
-        getRawTag(11, "clordid123"), getContext("D",
+        getRawTag(11, "clordid123"), getContext(NEW_ORDER_SINGLE,
             Optional.ofNullable(transactDateEntry).map(Map::ofEntries).orElse(Map.of())));
 
     assertThat(validationResult.hasErrors()).isFalse();
@@ -100,11 +102,9 @@ public class ClordidValidatorTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"D, true",
-              "A, false"})
-  void applicableToMessageType(String messageType, boolean isSupported) {
-    assertThat(validator.applicableToMessageType(messageType))
-        .isEqualTo(isSupported);
+  @CsvSource({"NEW_ORDER_SINGLE, true"})
+  void applicableToMessageType(MessageType messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType)).isEqualTo(isSupported);
   }
 
   private static Stream<Arguments> invalidTransactDate() {

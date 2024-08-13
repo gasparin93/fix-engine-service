@@ -1,35 +1,11 @@
 package com.honestefforts.fixengine.service.validation.header;
 
-import ch.qos.logback.core.util.StringUtil;
-import com.honestefforts.fixengine.model.converter.FixConverter;
-import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
-import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-/**
- * Validator for tag 35 (MsgType)
- * <br>
- * Will use SpringBoot injection to determine what converters are available and hence supported
- * by the application.
- */
-@Component
-public class MessageTypeValidator implements FixValidator {
-
-  private static final Set<String> applicableMessageTypes = Set.of("D");
-  private final Set<String> supportedMsgTypes;
-
-  @Autowired
-  public MessageTypeValidator(List<FixConverter<?>> fixConverters) {
-    this.supportedMsgTypes = fixConverters.stream()
-        .map(FixConverter::supports)
-        .collect(Collectors.toSet());
-  }
+public class MessageTypeValidator {
 
   //if private type (U*) support is added, must be added here also
   private static final Set<String> acceptedValues = Set.of(
@@ -128,8 +104,7 @@ public class MessageTypeValidator implements FixValidator {
       "BH"  //Confirmation Request <BH>
   );
 
-  @Override
-  public ValidationError validate(RawTag rawTag, FixMessageContext context) {
+  public static ValidationError validate(RawTag rawTag) {
     ValidationError.ValidationErrorBuilder validationErrorBuilder = ValidationError.builder()
         .critical(true).submittedTag(rawTag);
 
@@ -143,24 +118,14 @@ public class MessageTypeValidator implements FixValidator {
       }
       return validationErrorBuilder.error("Message type is invalid!").build();
     }
-    if(!supportedMsgTypes.contains(rawTag.value())) {
+    if(!MessageType.isAValidMessageType(rawTag.value())) {
       return validationErrorBuilder.error("Message Type is not currently supported!").build();
     }
     return ValidationError.empty();
   }
 
-  private boolean isCustomType(RawTag rawTag) {
+  private static boolean isCustomType(RawTag rawTag) {
     return rawTag.value().charAt(0) == 'U';
-  }
-
-  @Override
-  public Integer supports() {
-    return 35;
-  }
-
-  @Override
-  public boolean applicableToMessageType(String messageType) {
-    return applicableMessageTypes.contains(messageType);
   }
 
 }

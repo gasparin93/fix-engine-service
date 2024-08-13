@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.validation;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +19,7 @@ public class RequiredComponentValidationTest {
   void validateRequiredComponentsForMessageType_happyPath() {
     List<ValidationError> validationErrors = RequiredComponentValidation
         .validateRequiredComponentsForMessageType(
-            getContext("D", someRequiredTagsForNewOrderSingleComponents()));
+            getContext(NEW_ORDER_SINGLE, someRequiredTagsForNewOrderSingleComponents()));
     assertThat(validationErrors).isEmpty();
   }
 
@@ -26,7 +27,7 @@ public class RequiredComponentValidationTest {
   void validateRequiredComponentsForMessageType_emptyMap_expectValidationErrors() {
     List<ValidationError> validationErrors = RequiredComponentValidation
         .validateRequiredComponentsForMessageType(
-            getContext("D", Map.of()));
+            getContext(NEW_ORDER_SINGLE, Map.of()));
     assertThat(validationErrors).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             ValidationError.builder().critical(true)
@@ -36,14 +37,6 @@ public class RequiredComponentValidationTest {
                 .error("Message type D requires OrderQuantityData component! Requires at least one of: ["
                     + OrderQuantityData.getSupportedTags() + "]").build()
     );
-  }
-
-  @Test
-  void validateRequiredComponentsForMessageType_nonApplicableMessageType_expectNoErrors() {
-    List<ValidationError> validationErrors = RequiredComponentValidation
-        .validateRequiredComponentsForMessageType(
-            getContext("A", someRequiredTagsForNewOrderSingleComponents()));
-    assertThat(validationErrors).isEmpty();
   }
 
   private Map<Integer, RawTag> someRequiredTagsForNewOrderSingleComponents() {

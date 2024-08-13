@@ -1,9 +1,11 @@
 package com.honestefforts.fixengine.service.validation.header;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.model.message.tags.TagType.POSITIVE_INTEGER;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,7 @@ public class BodyLengthValidatorTest {
   void validate_happyPath() {
     ValidationError validationResult = validator.validate(
         RawTag.builder().tag(9).dataType(POSITIVE_INTEGER).value("1").position(2).build(),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }
@@ -26,7 +28,7 @@ public class BodyLengthValidatorTest {
   @Test
   void validate_notSecondInMessage_expectValidationError() {
     RawTag tag = RawTag.builder().tag(9).dataType(POSITIVE_INTEGER).value("FIX.4.4").position(1).build();
-    ValidationError validationResult = validator.validate(tag, getContext("D"));
+    ValidationError validationResult = validator.validate(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
@@ -37,7 +39,7 @@ public class BodyLengthValidatorTest {
   @CsvSource({"-1", "1.5", "one"})
   void validate_invalidInputs_expectValidationError(String length) {
     RawTag tag = RawTag.builder().tag(9).dataType(POSITIVE_INTEGER).value(length).position(2).build();
-    ValidationError validationResult = validator.validate(tag, getContext("D"));;
+    ValidationError validationResult = validator.validate(tag, getContext(NEW_ORDER_SINGLE));;
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
@@ -50,11 +52,9 @@ public class BodyLengthValidatorTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"D, true",
-              "A, false"})
-  void applicableToMessageType(String messageType, boolean isSupported) {
-    assertThat(validator.applicableToMessageType(messageType))
-        .isEqualTo(isSupported);
+  @CsvSource({"NEW_ORDER_SINGLE, true"})
+  void applicableToMessageType(MessageType messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType)).isEqualTo(isSupported);
   }
 
 }

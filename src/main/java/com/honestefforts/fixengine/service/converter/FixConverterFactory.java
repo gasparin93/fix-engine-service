@@ -3,6 +3,7 @@ package com.honestefforts.fixengine.service.converter;
 import com.honestefforts.fixengine.model.converter.FixConverter;
 import com.honestefforts.fixengine.model.message.FixMessage;
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FixConverterFactory {
-  private final Map<String, FixConverter<?>> converterMap;
+  private final Map<MessageType, FixConverter<?>> converterMap;
 
   @Autowired
   public FixConverterFactory(List<FixConverter<?>> converters) {

@@ -1,8 +1,10 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseUtcTimestamp;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ClordidValidator implements FixValidator {
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  private static final Set<MessageType> applicableMessageTypes = Set.of(NEW_ORDER_SINGLE);
   private final BloomFilterWrapper bloomFilter;
   private final ReentrantLock lock = new ReentrantLock();
   @Getter
@@ -68,7 +70,7 @@ public class ClordidValidator implements FixValidator {
   }
 
   @Override
-  public boolean applicableToMessageType(String messageType) {
+  public boolean applicableToMessageType(MessageType messageType) {
     return applicableMessageTypes.contains(messageType);
   }
 

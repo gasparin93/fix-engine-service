@@ -1,7 +1,10 @@
 package com.honestefforts.fixengine.service.validation.header;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
+
 import ch.qos.logback.core.util.StringUtil;
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -13,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BeginStringValidator implements FixValidator {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  private static final Set<MessageType> applicableMessageTypes = Set.of(NEW_ORDER_SINGLE);
 
   //tag, isSupported
   private static final Map<String, Boolean> acceptedValues = Map.of(
@@ -55,7 +58,7 @@ public class BeginStringValidator implements FixValidator {
   }
 
   @Override
-  public boolean applicableToMessageType(String messageType) {
+  public boolean applicableToMessageType(MessageType messageType) {
     return applicableMessageTypes.contains(messageType);
   }
 

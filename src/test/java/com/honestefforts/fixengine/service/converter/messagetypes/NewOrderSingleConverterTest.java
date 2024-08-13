@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.messagetypes;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeMsToString;
@@ -12,7 +13,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.components.CommissionData;
 import com.honestefforts.fixengine.model.message.components.DiscretionInstructions;
 import com.honestefforts.fixengine.model.message.components.FinancingDetails;
@@ -28,6 +28,7 @@ import com.honestefforts.fixengine.model.message.components.Stipulations;
 import com.honestefforts.fixengine.model.message.components.UnderlyingInstrument;
 import com.honestefforts.fixengine.model.message.components.YieldData;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
+import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.universal.Currency;
 import com.honestefforts.fixengine.model.universal.MarketIdentifierCode;
 import com.honestefforts.fixengine.service.converter.component.CommissionDataConverter;
@@ -135,7 +136,7 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_happyPath() {
-    FixMessageContext context = getContext("D", Map.ofEntries(
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE, Map.ofEntries(
         getRawTagEntry(11, "string1"),
         getRawTagEntry(54, "a"),
         getRawTagEntry(60, parseDateTimeToString(now)),
@@ -305,7 +306,7 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
-    FixMessageContext context = getContext("D");
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE);
 
     assertThatThrownBy(() -> converter.convert(context))
         .isInstanceOf(NullPointerException.class);
@@ -313,7 +314,7 @@ public class NewOrderSingleConverterTest {
 
   @Test
   void convert_unsupportedTags_expectOnlyRequiredTags() {
-    FixMessageContext context = getContext("D", Map.ofEntries(
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE, Map.ofEntries(
         getRawTagEntry(11, "string1"),
         getRawTagEntry(54, "a"),
         getRawTagEntry(60, parseDateTimeToString(now)),
@@ -351,7 +352,7 @@ public class NewOrderSingleConverterTest {
   @MethodSource("invalidValues")
   void convert_invalidValues_expectExceptions(Map.Entry<Integer, RawTag> tagEntry,
       Class<Throwable> expectedException) {
-    FixMessageContext context = getContext("D", Map.ofEntries(tagEntry));
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE, Map.ofEntries(tagEntry));
 
     assertThatThrownBy(() -> converter.convert(context))
         .isInstanceOf(expectedException);

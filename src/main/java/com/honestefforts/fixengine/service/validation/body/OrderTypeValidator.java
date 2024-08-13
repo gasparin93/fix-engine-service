@@ -1,17 +1,19 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
+
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderTypeValidator implements FixValidator {
 
-  private static final Set<String> applicableMessageTypes = Set.of("D");
+  private static final Set<MessageType> applicableMessageTypes = Set.of(NEW_ORDER_SINGLE);
 
   //TODO: these should be an enum
   private static final Set<String> acceptedValues = Set.of(
@@ -47,7 +49,7 @@ public class OrderTypeValidator implements FixValidator {
   }
 
   @Override
-  public boolean applicableToMessageType(String messageType) {
+  public boolean applicableToMessageType(MessageType messageType) {
     return applicableMessageTypes.contains(messageType);
   }
 

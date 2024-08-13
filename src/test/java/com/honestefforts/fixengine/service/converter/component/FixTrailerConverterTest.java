@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,7 @@ public class FixTrailerConverterTest {
 
   @Test
   void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
-    FixMessageContext context = getContext("D");
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE);
 
     assertThatThrownBy(() -> FixHeaderConverter.convert(context))
         .isInstanceOf(NullPointerException.class);

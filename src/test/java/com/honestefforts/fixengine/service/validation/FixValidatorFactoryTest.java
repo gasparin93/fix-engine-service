@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.validation;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.model.validation.FixValidator.EMPTY_OR_NULL_VALUE;
 import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
@@ -41,7 +42,7 @@ public class FixValidatorFactoryTest {
     when(validator.validate(any(), any())).thenReturn(ValidationError.empty());
 
     ValidationError validationError = factory.validateTag(getRawTag(A_TAG, "text"),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError.isEmpty()).isTrue();
     verify(validator, times(1)).validate(any(), any());
@@ -53,7 +54,7 @@ public class FixValidatorFactoryTest {
     factory = new FixValidatorFactory(List.of(validator));
 
     ValidationError validationError = factory.validateTag(getRawTag(A_TAG, "text"),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError.isEmpty()).isTrue();
     verify(validator, times(0)).validate(any(), any());
@@ -65,7 +66,7 @@ public class FixValidatorFactoryTest {
     factory = new FixValidatorFactory(List.of(validator));
 
     RawTag tag = getRawTag(9999, "text");
-    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+    ValidationError validationError = factory.validateTag(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).error("Unsupported tag").build());
@@ -80,7 +81,7 @@ public class FixValidatorFactoryTest {
     when(validator.applicableToMessageType(any())).thenReturn(true);
 
     RawTag tag = getRawTag(11, value);
-    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+    ValidationError validationError = factory.validateTag(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
@@ -102,7 +103,7 @@ public class FixValidatorFactoryTest {
     when(validator.applicableToMessageType(any())).thenReturn(true);
 
     RawTag tag = getRawTag(tagUsed, value);
-    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+    ValidationError validationError = factory.validateTag(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(isRequired)
@@ -122,7 +123,7 @@ public class FixValidatorFactoryTest {
     factory = new FixValidatorFactory(List.of(validator));
 
     RawTag tag = getRawTag(isRequired ? A_REQUIRED_TAG : AN_OPTIONAL_TAG, value);
-    ValidationError validationError = factory.validateTag(tag, getContext("D"));
+    ValidationError validationError = factory.validateTag(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationError).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(isRequired)

@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.messagetypes;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseBoolean;
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseChar;
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseDate;
@@ -11,6 +12,7 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 
 import com.honestefforts.fixengine.model.converter.FixConverter;
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.types.NewOrderSingle;
 import com.honestefforts.fixengine.model.message.types.NewOrderSingle.NewOrderSingleBuilder;
 import com.honestefforts.fixengine.model.universal.Currency;
@@ -141,7 +143,7 @@ public class NewOrderSingleConverter implements FixConverter<NewOrderSingle> {
   }
 
   @Override
-  public String supports() {
-    return "D";
+  public MessageType supports() {
+    return NEW_ORDER_SINGLE;
   }
 }
