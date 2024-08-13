@@ -1,9 +1,11 @@
 package com.honestefforts.fixengine.service.validation.body;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTag;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,7 +20,7 @@ public class OrderTypeValidatorTest {
   void validate_happyPath(String orderType) {
     ValidationError validationResult = validator.validate(
         getRawTag(40, orderType),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }
@@ -27,7 +29,7 @@ public class OrderTypeValidatorTest {
   void validate_unsupportedOrderType_expectValidationError() {
     ValidationError validationResult = validator.validate(
         getRawTag(40, "ABCD"),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(getRawTag(40, "ABCD")).critical(true)
@@ -40,11 +42,9 @@ public class OrderTypeValidatorTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"D, true",
-              "A, false"})
-  void applicableToMessageType(String messageType, boolean isSupported) {
-    assertThat(validator.applicableToMessageType(messageType))
-        .isEqualTo(isSupported);
+  @CsvSource({"NEW_ORDER_SINGLE, true"})
+  void applicableToMessageType(MessageType messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType)).isEqualTo(isSupported);
   }
 
 }

@@ -27,7 +27,6 @@ public class FixHeaderConverter {
       Map.entry(213, FixHeaderBuilder::xmlData),
       Map.entry(34, (builder, val) -> builder.msgSeqNum(parseInt(val))),
       Map.entry(347, FixHeaderBuilder::messageEncoding),
-      Map.entry(35, FixHeaderBuilder::messageType),
       Map.entry(369, (builder, val) -> builder.lastMsgSeqNumProcessed(parseInt(val))),
       Map.entry(43, (builder, val) -> builder.possibleDuplicationFlag(parseBoolean(val))),
       Map.entry(49, FixHeaderBuilder::senderCompID),
@@ -51,6 +50,7 @@ public class FixHeaderConverter {
     tagMapping.forEach((key, builderMapping) ->
         Optional.ofNullable(context.processedMessages().get(key))
             .ifPresent(rawTag -> builderMapping.accept(builder, rawTag.value())));
+    builder.messageType(context.messageType());
     return builder.build();
   }
 }

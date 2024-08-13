@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +27,7 @@ public class FixConverterFactoryTest {
 
   @BeforeEach
   void setUp() {
-    when(newOrderSingleConverter.supports()).thenReturn("D");
+    when(newOrderSingleConverter.supports()).thenReturn(NEW_ORDER_SINGLE);
     fixConverterFactory = new FixConverterFactory(List.of(newOrderSingleConverter));
   }
 
@@ -34,7 +35,7 @@ public class FixConverterFactoryTest {
   void create_happyPath() {
     NewOrderSingle fixMessage = mock(NewOrderSingle.class);
     when(newOrderSingleConverter.convert(any())).thenReturn(fixMessage);
-    assertThat(fixConverterFactory.create(getContext("D")))
+    assertThat(fixConverterFactory.create(getContext(NEW_ORDER_SINGLE)))
         .isEqualTo(fixMessage);
   }
 
@@ -42,12 +43,6 @@ public class FixConverterFactoryTest {
   void create_null_expectException() {
     assertThatThrownBy(() -> fixConverterFactory.create(null))
         .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
-  void create_unsupportedMessageType_expectNull() {
-    assertThat(fixConverterFactory.create(getContext("9999")))
-        .isNull();
   }
 
 }

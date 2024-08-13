@@ -4,6 +4,7 @@ import static com.honestefforts.fixengine.model.validation.FixValidator.EMPTY_OR
 import static com.honestefforts.fixengine.model.validation.FixValidator.REQUIRED_ERROR_MSG;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.FixValidator;
 import com.honestefforts.fixengine.model.validation.ValidationError;
@@ -20,9 +21,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class FixValidatorFactory {
   private final Map<Integer, FixValidator> validatorMap;
-  private static final Map<String, Set<Integer>> requiredTagsByMsgType = Map.of(
-      "D", Set.of(11, 34, 40, 49, 52, 54, 56, 60)
-  );
   private static final Set<Integer> supportedTags = IntStream.range(1, 957) //1-956
       .filter(num -> num != 101 && num != 261 && num != 809)
       .boxed()
@@ -47,10 +45,8 @@ public class FixValidatorFactory {
     return supportedTags.contains(rawTag.tag());
   }
 
-  private static boolean isCritical(RawTag rawTag, String messageType) {
-    return Optional.ofNullable(requiredTagsByMsgType.get(messageType))
-        .map(messageTypeRequiredTags -> messageTypeRequiredTags.contains(rawTag.tag()))
-        .orElse(false);
+  private static boolean isCritical(RawTag rawTag, MessageType messageType) {
+    return messageType.getRequiredTags().contains(rawTag.tag());
   }
 
   private ValidationError validateUsingTagSpecificValidator(FixValidator fixValidator,
@@ -63,7 +59,7 @@ public class FixValidatorFactory {
             .error(isCritical ? REQUIRED_ERROR_MSG : EMPTY_OR_NULL_VALUE).build());
   }
 
-  private ValidationError doGenericValidation(RawTag rawTag, String messageType) {
+  private ValidationError doGenericValidation(RawTag rawTag, MessageType messageType) {
     boolean isCritical = isCritical(rawTag, messageType);
     return Optional.ofNullable(rawTag.value())
         .filter(val -> !val.isBlank())

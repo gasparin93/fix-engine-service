@@ -4,7 +4,9 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.honestefforts.fixengine.service.config.ClordidValidationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BloomFilterWrapper {
 
   private final ClordidValidationConfig clordidValidationConfig;

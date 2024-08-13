@@ -1,20 +1,19 @@
 package com.honestefforts.fixengine.service.validation.trailer;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 public class CheckSumValidatorTest {
-
-  private static final Set<String> applicableMessageTypes = Set.of("D");
 
   CheckSumValidator validator = new CheckSumValidator();
 
@@ -25,7 +24,7 @@ public class CheckSumValidatorTest {
         FixMessageContext.builder()
             .processedMessages(Map.of())
             .version("FIX.4.4")
-            .messageType("D")
+            .messageType(NEW_ORDER_SINGLE)
             .messageLength(50)
             .build());
 
@@ -39,7 +38,7 @@ public class CheckSumValidatorTest {
         FixMessageContext.builder()
             .processedMessages(Map.of())
             .version("FIX.4.4")
-            .messageType("D")
+            .messageType(NEW_ORDER_SINGLE)
             .messageLength(50)
             .build());
 
@@ -54,11 +53,9 @@ public class CheckSumValidatorTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"D, true",
-              "A, false"})
-  void applicableToMessageType(String messageType, boolean isSupported) {
-    assertThat(validator.applicableToMessageType(messageType))
-        .isEqualTo(isSupported);
+  @CsvSource({"NEW_ORDER_SINGLE, true"})
+  void applicableToMessageType(MessageType messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType)).isEqualTo(isSupported);
   }
 
 }

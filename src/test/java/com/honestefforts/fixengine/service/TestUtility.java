@@ -1,8 +1,10 @@
 package com.honestefforts.fixengine.service;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,17 +53,17 @@ public class TestUtility {
     return Map.entry(tag, getRawTag(tag, value));
   }
 
-  public static FixMessageContext getContext(String messageType, Map<Integer, RawTag> messages) {
+  public static FixMessageContext getContext(MessageType messageType, Map<Integer, RawTag> messages) {
     return FixMessageContext.builder().messageType(messageType).processedMessages(messages)
         .version("FIX.4.4").build();
   }
 
-  public static FixMessageContext getContext(String messageType) {
+  public static FixMessageContext getContext(MessageType messageType) {
     return getContext(messageType, Map.of());
   }
 
   public static FixMessageContext getContext(Map<Integer, RawTag> messages) {
-    return getContext("D", messages);
+    return getContext(NEW_ORDER_SINGLE, messages);
   }
 
 }

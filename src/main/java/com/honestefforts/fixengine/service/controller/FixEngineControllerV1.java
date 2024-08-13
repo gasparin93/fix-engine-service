@@ -5,7 +5,6 @@ import com.honestefforts.fixengine.model.endpoint.response.FixMessageResponseV1;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.message.tags.TagType;
 import com.honestefforts.fixengine.model.validation.ValidationError;
-import com.honestefforts.fixengine.service.converter.messagetypes.BusinessMessageRejectConverter;
 import com.honestefforts.fixengine.service.service.FixEngineService;
 import com.honestefforts.fixengine.service.validation.header.BeginStringValidator;
 import java.util.List;
@@ -51,8 +50,7 @@ public class FixEngineControllerV1 {
   private List<FixMessageResponseV1> getIncorrectVersionResponse(FixMessageRequestV1 request) {
     return List.of(
         FixMessageResponseV1.builder()
-            .response(BusinessMessageRejectConverter
-                .generate("Provided FIX version " + request.getVersion() + " is not supported"))
+            .response(null)
             .errors(List.of(ValidationError.builder().critical(true)
                 .error("Provided FIX version " + request.getVersion() + " is not supported")
                 .submittedTag(RawTag.builder().value(request.getVersion())

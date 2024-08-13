@@ -1,5 +1,6 @@
 package com.honestefforts.fixengine.service.converter.component;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static com.honestefforts.fixengine.service.TestUtility.getRawTagEntry;
 import static com.honestefforts.fixengine.service.TestUtility.parseDateTimeMsToString;
@@ -31,7 +32,7 @@ public class FixHeaderConverterTest {
     FixMessageContext context = getContext(Map.ofEntries(
         getRawTagEntry(8, "string1"),
         getRawTagEntry(9, "1"),
-        getRawTagEntry(35, "string2"),
+        getRawTagEntry(35, "D"),
         getRawTagEntry(34, "2"),
         getRawTagEntry(52, parseDateTimeToString(now)),
         getRawTagEntry(49, "string3"),
@@ -67,7 +68,7 @@ public class FixHeaderConverterTest {
         .isEqualTo(FixHeader.builder()
             .version("string1")
             .bodyLength(1)
-            .messageType("string2")
+            .messageType(NEW_ORDER_SINGLE)
             .msgSeqNum(2)
             .sendingTime(now)
             .senderCompID("string3")
@@ -100,7 +101,7 @@ public class FixHeaderConverterTest {
 
   @Test
   void convert_emptyMap_expectNullPointerExceptionFromMissingRequiredFields() {
-    FixMessageContext context = getContext("D");
+    FixMessageContext context = getContext(NEW_ORDER_SINGLE);
 
     assertThatThrownBy(() -> FixHeaderConverter.convert(context))
         .isInstanceOf(NullPointerException.class);
@@ -111,7 +112,7 @@ public class FixHeaderConverterTest {
     FixMessageContext context = getContext(Map.ofEntries(
         getRawTagEntry(8, "string1"),
         getRawTagEntry(9, "1"),
-        getRawTagEntry(35, "string2"),
+        getRawTagEntry(35, "D"),
         getRawTagEntry(34, "2"),
         getRawTagEntry(52, parseDateTimeToString(now)),
         getRawTagEntry(49, "string3"),
@@ -127,7 +128,7 @@ public class FixHeaderConverterTest {
         .isEqualTo(FixHeader.builder()
             .version("string1")
             .bodyLength(1)
-            .messageType("string2")
+            .messageType(NEW_ORDER_SINGLE)
             .msgSeqNum(2)
             .sendingTime(now)
             .senderCompID("string3")

@@ -1,10 +1,12 @@
 package com.honestefforts.fixengine.service.validation.header;
 
+import static com.honestefforts.fixengine.model.message.enums.MessageType.NEW_ORDER_SINGLE;
 import static com.honestefforts.fixengine.model.message.tags.TagType.STRING;
 import static com.honestefforts.fixengine.service.TestUtility.getContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
+import com.honestefforts.fixengine.model.message.enums.MessageType;
 import com.honestefforts.fixengine.model.message.tags.RawTag;
 import com.honestefforts.fixengine.model.validation.ValidationError;
 import java.util.Map;
@@ -21,7 +23,7 @@ public class BeginStringValidatorTest {
   void validate_happyPath(String version) {
     ValidationError validationResult = validator.validate(
         RawTag.builder().tag(8).dataType(STRING).value(version).position(1).build(),
-        getContext("D"));
+        getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult.hasErrors()).isFalse();
   }
@@ -29,7 +31,7 @@ public class BeginStringValidatorTest {
   @Test
   void validate_notFirstInMessage_expectValidationError() {
     RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.4").position(2).build();
-    ValidationError validationResult = validator.validate(tag, getContext("D"));
+    ValidationError validationResult = validator.validate(tag, getContext(NEW_ORDER_SINGLE));
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
@@ -39,7 +41,7 @@ public class BeginStringValidatorTest {
   @Test
   void validate_invalidVersion_expectValidationError() {
     RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("ABCD").position(1).build();
-    ValidationError validationResult = validator.validate(tag, getContext("D"));;
+    ValidationError validationResult = validator.validate(tag, getContext(NEW_ORDER_SINGLE));;
 
     assertThat(validationResult).usingRecursiveComparison().withStrictTypeChecking()
         .isEqualTo(ValidationError.builder().submittedTag(tag).critical(true)
@@ -50,7 +52,7 @@ public class BeginStringValidatorTest {
   void validate_unsupportedVersion_expectValidationError() {
     RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.0").position(1).build();
     ValidationError validationResult = validator.validate(tag, FixMessageContext.builder()
-        .messageType("D")
+        .messageType(NEW_ORDER_SINGLE)
         .version("FIX.4.0")
         .processedMessages(Map.of())
         .build());
@@ -65,7 +67,7 @@ public class BeginStringValidatorTest {
     RawTag tag = RawTag.builder().tag(8).dataType(STRING).value("FIX.4.4").position(1).build();
     ValidationError validationResult = validator.validate(tag,
         FixMessageContext.builder()
-            .messageType("D")
+            .messageType(NEW_ORDER_SINGLE)
             .version("FIX.4.2")
             .processedMessages(Map.of())
             .build());
@@ -81,11 +83,9 @@ public class BeginStringValidatorTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"D, true",
-              "A, false"})
-  void applicableToMessageType(String messageType, boolean isSupported) {
-    assertThat(validator.applicableToMessageType(messageType))
-        .isEqualTo(isSupported);
+  @CsvSource({"NEW_ORDER_SINGLE, true"})
+  void applicableToMessageType(MessageType messageType, boolean isSupported) {
+    assertThat(validator.applicableToMessageType(messageType)).isEqualTo(isSupported);
   }
 
 }

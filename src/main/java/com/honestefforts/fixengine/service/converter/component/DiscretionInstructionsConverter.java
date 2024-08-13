@@ -5,8 +5,8 @@ import static com.honestefforts.fixengine.service.converter.util.CommonConversio
 import static com.honestefforts.fixengine.service.converter.util.CommonConversionUtil.parseInt;
 
 import com.honestefforts.fixengine.model.message.FixMessageContext;
-import com.honestefforts.fixengine.model.message.components.DiscretionInstructions.DiscretionInstructionsBuilder;
 import com.honestefforts.fixengine.model.message.components.DiscretionInstructions;
+import com.honestefforts.fixengine.model.message.components.DiscretionInstructions.DiscretionInstructionsBuilder;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
