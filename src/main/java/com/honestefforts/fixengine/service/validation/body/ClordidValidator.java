@@ -14,18 +14,20 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
 public class ClordidValidator implements FixValidator {
   private static final Set<MessageType> applicableMessageTypes = Set.of(NEW_ORDER_SINGLE);
   private final BloomFilterWrapper bloomFilter;
   private final ReentrantLock lock = new ReentrantLock();
   @Getter
   private LocalDate currentDay = LocalDate.now();
+
+  public ClordidValidator(BloomFilterWrapper bloomFilter) {
+    this.bloomFilter = bloomFilter;
+  }
 
   @Override
   public ValidationError validate(final RawTag rawTag, final FixMessageContext context) {
