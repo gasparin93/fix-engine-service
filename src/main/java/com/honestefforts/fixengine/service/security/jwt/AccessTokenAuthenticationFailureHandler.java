@@ -10,6 +10,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 import com.google.gson.Gson;
+import com.honestefforts.fixengine.service.constants.ApplicationConstants;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +28,9 @@ public class AccessTokenAuthenticationFailureHandler implements AuthenticationFa
 
 	public String createErrorBody(AuthenticationException exception ) {
 		Map<String, Object> details = new HashMap<>();
-		details.put("error_description", null);
+		details.put("error_description", ApplicationConstants.getERROR_MAP()
+				.getOrDefault(exception.getMessage(), 
+						ApplicationConstants.INVALID_TOKEN_DESC));
 		details.put("error", exception.getMessage());
 		
 		JSONObject exceptionObj = new JSONObject(details);

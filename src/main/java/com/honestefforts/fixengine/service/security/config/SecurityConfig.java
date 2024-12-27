@@ -14,7 +14,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.honestefforts.fixengine.service.security.jwt.AccessTokenAuthenticationFailureHandler;
 import com.honestefforts.fixengine.service.security.jwt.AccessTokenFilter;
-import com.honestefforts.fixengine.service.security.jwt.validation.JwtTokenValidator;
+import com.honestefforts.fixengine.service.security.jwt.utility.JwtTokenValidator;
 
 @Order(1)
 @EnableWebSecurity
