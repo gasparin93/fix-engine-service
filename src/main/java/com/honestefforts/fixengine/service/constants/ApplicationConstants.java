@@ -21,4 +21,22 @@ public class ApplicationConstants {
 	
 	public static final String HS256_SECRET_KEY = (System.getenv("HS256_SECRET_KEY") != null) ? 
             System.getenv("HS256_SECRET") : "unknown";
+	
+	public static final String X_CONSUMERS_IDS = System.getenv("X_CONSUMERS_IDS");
+	public static final String X_CONSUMERS_USERNAMES = System.getenv("X_CONSUMERS_USERNAMES");
+	
+	private static final Map<String, String> AUTHORIZED_CLIENTS_MAP;
+	static {
+		AUTHORIZED_CLIENTS_MAP = new ConcurrentHashMap<>();
+		String[] consumers = X_CONSUMERS_IDS.split(",");
+		String[] usernames = X_CONSUMERS_USERNAMES.split(",");
+		for (int i = 0; i < consumers.length; i++) {
+			AUTHORIZED_CLIENTS_MAP.put(consumers[i], usernames[i]);
+		}
+		// etc. 
+	}
+
+	public static Map<String, String> getAUTHORIZED_CLIENTS_MAP() {
+		return AUTHORIZED_CLIENTS_MAP;
+	}
 }

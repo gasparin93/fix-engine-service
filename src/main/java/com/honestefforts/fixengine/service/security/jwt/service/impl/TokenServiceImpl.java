@@ -2,6 +2,7 @@ package com.honestefforts.fixengine.service.security.jwt.service.impl;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.honestefforts.fixengine.service.constants.ApplicationConstants;
 import com.honestefforts.fixengine.service.security.jwt.exception.TokenServiceException;
 import com.honestefforts.fixengine.service.security.jwt.model.TokenResponse;
 import com.honestefforts.fixengine.service.security.jwt.service.TokenService;
@@ -72,7 +74,9 @@ public class TokenServiceImpl implements TokenService {
 		try {
 			// validate consumer ID and username
 			if (StringUtils.isEmpty(xConsumerID) || 
-					StringUtils.isEmpty(xConsumerUsername)) {
+					StringUtils.isEmpty(xConsumerUsername) || 
+					checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientstMap(xConsumerID, 
+							xConsumerUsername)) {
 				throw new Exception("Invalid API Consumer");
 			}
 				
@@ -117,6 +121,15 @@ public class TokenServiceImpl implements TokenService {
 			logger.log(Level.INFO, "TokenServiceImpl performJWTTokenService completed.");
 			
 		}
+	}
+
+	public boolean checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientstMap(
+			String xConsumerID, String xConsumerUsername) {
+		Map<String, String> whiteListMap = ApplicationConstants.getAUTHORIZED_CLIENTS_MAP();
+		if (whiteListMap.containsKey(xConsumerID) && whiteListMap.get(xConsumerID).equals(xConsumerUsername)) {
+			return false;
+		}
+		return true;
 	}
 
 	public TokenResponse generateNewJWTTokenAndPersistToCache(String xConsumerID, String xConsumerUsername) throws ParseException {
