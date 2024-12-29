@@ -20,7 +20,7 @@ public class ApplicationConstants {
 	}
 	
 	public static final String HS256_SECRET_KEY = (System.getenv("HS256_SECRET_KEY") != null) ? 
-            System.getenv("HS256_SECRET") : "unknown";
+            System.getenv("HS256_SECRET_KEY") : "unknown";
 	
 	public static final String X_CONSUMERS_IDS = System.getenv("X_CONSUMERS_IDS");
 	public static final String X_CONSUMERS_USERNAMES = System.getenv("X_CONSUMERS_USERNAMES");
@@ -39,4 +39,17 @@ public class ApplicationConstants {
 	public static Map<String, String> getAUTHORIZED_CLIENTS_MAP() {
 		return AUTHORIZED_CLIENTS_MAP;
 	}
+	
+	public static final String INTERNAL_SERVER_ERROR = "internal_server_error";
+	
+	public static final Map<String, String> STATUS_CODE_TO_ERROR_TYPE_MAP;
+	static {
+		STATUS_CODE_TO_ERROR_TYPE_MAP = new ConcurrentHashMap<>();
+		STATUS_CODE_TO_ERROR_TYPE_MAP.put("500", INTERNAL_SERVER_ERROR);
+		STATUS_CODE_TO_ERROR_TYPE_MAP.put("401", INVALID_TOKEN);
+	}
+	public static Map<String, String> getStatusCodeToErrorTypeMap() {
+		return STATUS_CODE_TO_ERROR_TYPE_MAP;
+	}
+	
 }

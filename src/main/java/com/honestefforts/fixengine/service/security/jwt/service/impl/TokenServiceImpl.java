@@ -75,7 +75,7 @@ public class TokenServiceImpl implements TokenService {
 			// validate consumer ID and username
 			if (StringUtils.isEmpty(xConsumerID) || 
 					StringUtils.isEmpty(xConsumerUsername) || 
-					checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientstMap(xConsumerID, 
+					checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientsMap(xConsumerID, 
 							xConsumerUsername)) {
 				throw new Exception("Invalid API Consumer");
 			}
@@ -123,7 +123,7 @@ public class TokenServiceImpl implements TokenService {
 		}
 	}
 
-	public boolean checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientstMap(
+	public boolean checkConsumerIdAndConsumerUserNameAgainstAuthorizedClientsMap(
 			String xConsumerID, String xConsumerUsername) {
 		Map<String, String> whiteListMap = ApplicationConstants.getAUTHORIZED_CLIENTS_MAP();
 		if (whiteListMap.containsKey(xConsumerID) && whiteListMap.get(xConsumerID).equals(xConsumerUsername)) {

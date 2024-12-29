@@ -112,6 +112,13 @@
 	    <artifactId>commons-collections4</artifactId>
 	    <version>4.4</version>
 	</dependency>
+	<!-- https://mvnrepository.com/artifact/uk.org.webcompere/system-stubs-jupiter -->
+	<dependency>
+	    <groupId>uk.org.webcompere</groupId>
+	    <artifactId>system-stubs-jupiter</artifactId>
+	    <version>2.1.7</version>
+	    <scope>test</scope>
+	</dependency>
   </dependencies>
 
   <build>

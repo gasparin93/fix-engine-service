@@ -33,7 +33,7 @@ public class SecurityConfig {
 								new AntPathRequestMatcher("/swagger-ui/**", 
                                         HttpMethod.GET.toString()),
 								new AntPathRequestMatcher("/v3/api-docs/**"),
-								new AntPathRequestMatcher("/oauth2.0/cached/token"))
+								new AntPathRequestMatcher("/v1/oauth2.0/cached/token"))
 					.permitAll().anyRequest().authenticated())
 					.securityMatchers((securityMatch) -> 
 						securityMatch.requestMatchers(

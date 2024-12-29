@@ -68,7 +68,7 @@ public class AccessTokenFilter extends AbstractAuthenticationProcessingFilter {
 	}
 
 	@Override
-	protected void successfulAuthentication(HttpServletRequest request, 
+	public void successfulAuthentication(HttpServletRequest request, 
 			HttpServletResponse response, FilterChain chain, Authentication authResult) 
 					throws IOException, ServletException {
 		logger.log(Level.INFO, "Successful Authentication for the request {0}", 
