@@ -26,7 +26,7 @@ public class SecurityConfig {
 		http.csrf((csrf) -> csrf.disable())
 			.authorizeHttpRequests(
 					(authorize) -> authorize.requestMatchers(
-							new AntPathRequestMatcher("v1/health",
+							new AntPathRequestMatcher("/v1/health",
 									HttpMethod.GET.toString()),
 								new AntPathRequestMatcher("/swagger-ui/index.html", 
 										HttpMethod.GET.toString()),
@@ -37,7 +37,7 @@ public class SecurityConfig {
 					.permitAll().anyRequest().authenticated())
 					.securityMatchers((securityMatch) -> 
 						securityMatch.requestMatchers(
-								new AntPathRequestMatcher("v1/processFixMessages", 
+								new AntPathRequestMatcher("/v1/processFixMessages", 
 										HttpMethod.POST.toString())))
 					.addFilterBefore(new AccessTokenFilter(new JwtTokenValidator(), 
 							authenticationFailureHandler()), 
