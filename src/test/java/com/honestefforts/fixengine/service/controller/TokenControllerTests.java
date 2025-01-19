@@ -22,7 +22,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 @SpringBootTest
 @ContextConfiguration
 @TestPropertySource(
-		   locations = {"classpath:application-test.properties"}
+		   locations = {"classpath:application.yml"}
 		)
 @ExtendWith(SystemStubsExtension.class)
 public class TokenControllerTests {
