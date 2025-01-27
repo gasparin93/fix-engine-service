@@ -2,6 +2,16 @@ spring:
   application.name: fix-engine-service
   threads.virtual.enabled: true
 
+springdoc.swagger-ui.path: /swagger-ui.html
+
+hs256:
+  secretkey: ${HS256_SECRET_KEY:sdf89s0df89ds8f90ds89fds89f8dsf903nvhcjdf89d0=dsfd}
+
+jwt:
+  expiration:
+    window:
+      milliseconds: ${JWT_EXPIRATION_WINDOW_MILLISECONDS:120000}
+
 validation:
   clordid:
     false-positive-probability: 0.01
